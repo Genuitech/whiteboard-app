@@ -52,6 +52,11 @@ _Learn about the person you're helping. Update this as you go._
     - Developing new business ideas
   - Collaboration preference:
     - Wants to involve 3 friend-partners with complementary skill sets for new-idea generation
+  - Partner profile: Cory
+    - Core skill set: Analytical and precise execution
+    - Best at: Managing projects after kickoff / execution phase
+    - Should not own: Early-stage go/no-go decisions (hesitant at the start)
+    - Availability: ~20 hours/week
 
 ## Context
 
