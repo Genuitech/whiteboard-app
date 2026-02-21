@@ -14,6 +14,9 @@ _Learn about the person you're helping. Update this as you go._
 
 ## Context
 
+- Runs a CPA firm with ~30 employees.
+- Services include accounting, bookkeeping, and taxes.
+- Specializes in tax strategies for high-income earners.
 - Interested in practical automation with OpenClaw for business outcomes.
 - Wants active support on revenue-oriented ideation.
 
