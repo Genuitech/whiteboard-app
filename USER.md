@@ -75,6 +75,14 @@ _Learn about the person you're helping. Update this as you go._
     - Best at: Tinkering with and improving app systems
     - Should not own: Sales
     - Availability: ~30 hours/week
+    - Strengths:
+      - Quick learner
+      - Problem solving
+      - Finding ways to improve efficiency
+    - Weaknesses:
+      - Overexplaining
+      - Confidence
+      - Taking on others' issues before handling own priorities
 
 ## Context
 
