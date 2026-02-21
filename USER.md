@@ -50,6 +50,8 @@ _Learn about the person you're helping. Update this as you go._
   - Tasks to always own:
     - Closing deals
     - Developing new business ideas
+  - Collaboration preference:
+    - Wants to involve 3 friend-partners with complementary skill sets for new-idea generation
 
 ## Context
 
