@@ -28,6 +28,8 @@ _Learn about the person you're helping. Update this as you go._
   - Communication style:
     - Short and direct
     - Proactive check-ins preferred
+  - Boundaries / avoid list:
+    - None specified at this time
 
 ## Context
 
