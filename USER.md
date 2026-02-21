@@ -57,6 +57,11 @@ _Learn about the person you're helping. Update this as you go._
     - Geography: location-agnostic
   - Lead list rule (>$5M outreach list):
     - Include only targets with owner contact path (exclude broker-only contacts)
+  - Campaign sender profile:
+    - Name/title: Chea Romine, CPA / Managing Partner
+    - Reply email: cromine@rhwcpas.com
+    - Booking link: https://calendly.com/cromine-rhw/30-min-zoom
+    - Core offer line: Multiple ways to reduce your tax bill when selling your business.
   - Collaboration preference:
     - Wants to involve 3 friend-partners with complementary skill sets for new-idea generation
   - Partner profile: Cory
