@@ -57,6 +57,11 @@ _Learn about the person you're helping. Update this as you go._
     - Best at: Managing projects after kickoff / execution phase
     - Should not own: Early-stage go/no-go decisions (hesitant at the start)
     - Availability: ~20 hours/week
+  - Partner profile: Zack
+    - Core skill set: Software engineering / app development
+    - Best at: Coding and technical implementation of apps
+    - Should not own: Sales
+    - Availability: ~20 hours/week
 
 ## Context
 
