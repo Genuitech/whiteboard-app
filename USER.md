@@ -30,6 +30,12 @@ _Learn about the person you're helping. Update this as you go._
     - Proactive check-ins preferred
   - Boundaries / avoid list:
     - None specified at this time
+  - Strengths:
+    - Strong sales ability
+    - Deep technical CPA expertise
+    - Entrepreneurial mindset (building/buying businesses)
+    - Strong at finding efficiencies
+    - Highly analytical execution
 
 ## Context
 
