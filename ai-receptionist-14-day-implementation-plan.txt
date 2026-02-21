@@ -1,0 +1,164 @@
+Subject: 14-Day Implementation Plan — AI Receptionist + Outlook Scheduling + Return Status Lookup
+
+Hi Chea,
+
+Below is your 14-day implementation plan for an AI receptionist that can:
+1) Schedule meetings on employee Outlook calendars
+2) Route leads to the right team member
+3) Check return status in UltraTax + GoFileRoom
+
+==================================================
+TOOL STACK (what you need)
+==================================================
+
+1) Scheduling layer (required)
+- Microsoft Graph API (Outlook calendars)
+  - Read free/busy
+  - Create/modify/cancel meetings
+  - Assign by employee/role
+- Optional: Calendly routing (simpler booking UX)
+
+2) Conversation layer (receptionist)
+- Voice/SMS/Chat channel
+  - Phone: Twilio or Zoom Phone API
+  - Text: WhatsApp/SMS/Webchat
+- LLM agent for intake + booking logic
+  - Ask reason, urgency, service type
+  - Route to right employee and book slot
+
+3) Orchestration layer
+- n8n (recommended) or Zapier/Make
+  - Trigger from incoming call/message
+  - Check Outlook availability
+  - Book meeting
+  - Send confirmations/reminders
+  - Create follow-up tasks
+
+4) Return-status layer (UltraTax + GoFileRoom)
+- RPA first: UiPath or Power Automate Desktop
+  - Pull status from UltraTax + GoFileRoom
+  - Return response to agent (“In review”, “Awaiting docs”, etc.)
+- API later: if Thomson Reuters APIs are available, replace RPA with direct calls
+
+5) Data + security
+- CRM/lead store: Airtable/HubSpot/Sheets/SQL
+- Audit log for all booking/status lookups
+- Access controls via Microsoft Entra + least privilege
+
+==================================================
+14-DAY IMPLEMENTATION PLAN
+==================================================
+
+Day 1 — Architecture + Scope Lock
+- Finalize channels (phone + WhatsApp/SMS)
+- Define receptionist scope (bookings + status lookup)
+- Define service routing rules by department/employee
+- Lock success metrics (bookings completed, response time, lookup accuracy)
+
+Day 2 — Accounts + Access
+- Set up Microsoft Graph app registration
+- Configure delegated/app permissions for calendars
+- Set up Twilio (or chosen channel) credentials
+- Stand up n8n instance/workspace
+
+Day 3 — Calendar Model
+- Build employee calendar directory (name, role, calendar ID, booking constraints)
+- Define booking windows, buffers, blackout rules
+- Define meeting types + durations
+
+Day 4 — Intake Flows
+- Create intake script for receptionist (new lead, existing client, return-status request)
+- Define required fields (name, phone/email, reason, urgency)
+- Add qualification logic and routing tags
+
+Day 5 — Booking Workflow (v1)
+- Build n8n flow: incoming inquiry -> availability check -> slot options -> booking create
+- Add confirmation message templates
+- Add fallback if no slot is available
+
+Day 6 — Reschedule/Cancel Workflow
+- Build modification flow (reschedule/cancel)
+- Add guardrails for same-day/no-show edge cases
+- Confirm updates sync correctly to Outlook
+
+Day 7 — Logging + Dashboard
+- Create activity log table (who, what, when, outcome)
+- Add daily KPI view: requests, booked, failed, avg response time
+- Add exception queue for human follow-up
+
+Day 8 — UltraTax/GoFileRoom Status Mapping
+- Define exact status categories to expose to receptionist
+- Map UltraTax triggers to standardized status language
+- Map GoFileRoom workflow states to user-friendly responses
+
+Day 9 — RPA Status Bot (v1)
+- Build bot to fetch status from UltraTax/GoFileRoom
+- Return standardized status payload to n8n
+- Add timeout/retry logic and exception handling
+
+Day 10 — Receptionist + Status Integration
+- Add “check status” intent in receptionist flow
+- Connect intent -> RPA status lookup -> response template
+- Add escalation path for unknown or conflicting status
+
+Day 11 — Security + Compliance Hardening
+- Lock permissions to minimum required scopes
+- Add auth checks for status requests (client identity verification)
+- Validate audit trails for all status and booking actions
+
+Day 12 — Internal UAT
+- Run 20–30 test scenarios across booking and status checks
+- Validate routing accuracy and booking integrity
+- Capture defects and prioritize fixes
+
+Day 13 — Pilot Launch
+- Launch to one admin subgroup first
+- Monitor live usage and failures
+- Daily standup: issues, fixes, adoption blockers
+
+Day 14 — Production Rollout
+- Roll out to full admin team
+- Train staff on exception handling
+- Publish SOP + ownership matrix
+- Set Week 3 optimization backlog
+
+==================================================
+OWNERSHIP SPLIT (recommended)
+==================================================
+
+Chea
+- Final business rules, service priorities, customer experience standards
+- Final sign-off on routing and escalation policies
+
+Cory
+- Project manager + QA lead
+- Risk checks, scope discipline, rollout checklist owner
+
+Zack
+- Integration architecture, Graph API, orchestration logic quality
+- Reliability and maintainability standards
+
+Anthony
+- n8n automations, RPA workflows, system tuning/efficiency improvements
+- Exception handling + monitoring setup
+
+==================================================
+MVP GO-LIVE DEFINITION
+==================================================
+
+System is considered live when:
+- >=90% of booking requests auto-handled without manual intervention
+- Return-status lookup accuracy >=95% in pilot set
+- Audit logging present for 100% of actions
+- Exception queue response SLA defined and active
+
+==================================================
+NEXT STEP TODAY
+==================================================
+
+Approve this plan and I’ll draft:
+1) exact n8n workflow blueprint
+2) Microsoft Graph permission matrix
+3) receptionist conversation scripts (booking + status lookup)
+
+– Dexter
