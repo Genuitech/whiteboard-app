@@ -1,0 +1,6 @@
+lead_id,first_name,last_name,email,phone,company,role,segment,income_band,est_income,source_platform,source_url,intent_signal,location,last_contacted,next_step,status,owner,notes
+,,,,,,,W2_1099,100k-250k,,,Looking for tax savings,,,,,,,
+,,,,,,,W2_1099,250k-500k,,,Need tax prep help,,,,,,,
+,,,,,,,Business_Owner,100k-250k,,,Needs bookkeeping cleanup,,,,,,,
+,,,,,,,Business_Owner,250k-500k,,,Asking about tax strategy,,,,,,,
+,,,,,,,Professional_Complex,500k+,,,Multi-state/K-1/stock comp complexity,,,,,,,

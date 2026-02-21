@@ -1,0 +1,27 @@
+{
+  "webhookUrl": "https://hooks.zapier.com/hooks/catch/26534236/ucgsjhs/",
+  "description": "Payload templates for campaign email sends via Zapier",
+  "templates": {
+    "email_1_direct": {
+      "to": "{{email}}",
+      "subject": "Quick tax/bookkeeping check for 2026",
+      "body": "Hi {{first_name}},\n\nI help high-income earners and business owners reduce tax drag and tighten bookkeeping so decisions are cleaner year-round.\n\nIf you’re at $100k+ income, there are usually a few strategy levers worth reviewing before year-end.\n\nOpen to a quick 30-min strategy call?\nhttps://calendly.com/cromine-rhw/30-min-zoom\n\n– Chea Romine, CPA / Managing Partner\ncromine@rhwcpas.com"
+    },
+    "email_2_value": {
+      "to": "{{email}}",
+      "subject": "3 common misses I see at $100k+ income",
+      "body": "Hi {{first_name}},\n\nThree common gaps I see:\n1) Income structure not optimized\n2) Deductions not planned early enough\n3) Bookkeeping too delayed to be useful\n\nIf helpful, I can walk through your setup and show where savings/opportunities may exist.\nhttps://calendly.com/cromine-rhw/30-min-zoom\n\n– Chea"
+    },
+    "email_3_social_proof": {
+      "to": "{{email}}",
+      "subject": "Similar clients usually find 1–3 immediate improvements",
+      "body": "Hi {{first_name}},\n\nMost clients in your range find immediate improvements once we review structure + books together.\n\nIf you want, we can do a focused 30-min review and I’ll give clear next steps.\nhttps://calendly.com/cromine-rhw/30-min-zoom\n\n– Chea"
+    },
+    "email_4_breakup": {
+      "to": "{{email}}",
+      "subject": "Close the loop?",
+      "body": "Hi {{first_name}},\n\nShould I close this out, or do you want a quick strategy session on tax + bookkeeping optimization?\n\nIf yes, book here: https://calendly.com/cromine-rhw/30-min-zoom\n\n– Chea"
+    }
+  },
+  "curlExample": "curl -X POST 'https://hooks.zapier.com/hooks/catch/26534236/ucgsjhs/' -H 'Content-Type: application/json' -d '{\"to\":\"lead@example.com\",\"subject\":\"Quick tax/bookkeeping check for 2026\",\"body\":\"Hi John...\"}'"
+}
