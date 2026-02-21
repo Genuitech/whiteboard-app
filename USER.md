@@ -95,6 +95,7 @@ _Learn about the person you're helping. Update this as you go._
       - Overthinking
       - Delegation is a growth area
   - Partner profile: Anthony
+    - Email: anthony.depassio@gmail.com
     - Core skill set: Systems engineering
     - Best at: Tinkering with and improving app systems
     - Should not own: Sales
