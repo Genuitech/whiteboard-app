@@ -39,6 +39,8 @@ _Learn about the person you're helping. Update this as you go._
   - Weaknesses / constraints:
     - Marketing
     - Motivating people
+  - Energy drains:
+    - Frequent check-ins and day-to-day workflow management of employees
 
 ## Context
 
