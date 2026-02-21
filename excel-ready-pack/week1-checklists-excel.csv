@@ -1,0 +1,109 @@
+line_no,text
+1,# Week 1 Checklists (Day 1–7)
+2,
+3,## Objectives for Week 1
+4,- Lock scope for 2 MVPs:
+5,  1. Tax Strategy AI Pre-Screen
+6,  2. SOP/Workflow AI Builder (non-tax)
+7,- Assign clear ownership by partner strengths
+8,- Produce demo-ready artifacts for Week 2 build
+9,
+10,---
+11,
+12,## Daily Plan (All-Team)
+13,
+14,### Day 1 — Offer Clarity + ICP
+15,- Finalize one-line promise for both MVPs
+16,- Define Ideal Customer Profile (ICP) for each
+17,- Define top 3 pain points per ICP
+18,"- Define success metric per MVP (time saved, lead conversion, etc.)"
+19,
+20,### Day 2 — Scope (Must-Have Only)
+21,- Decide v1 must-have features only
+22,- Explicitly cut nice-to-have items
+23,- Define input/output schema for both products
+24,- Draft acceptance criteria
+25,
+26,### Day 3 — Workflow Mapping
+27,- Map end-to-end user journey for both MVPs
+28,- Define data handoffs (form → AI → report/task output)
+29,- Define integration points (CRM/email/calendar)
+30,- Identify failure points and fallback flows
+31,
+32,### Day 4 — UX + Prompt + Template Drafting
+33,- Create intake forms/questions
+34,- Draft AI prompt frameworks and output templates
+35,- Create first draft reports/deliverables users receive
+36,- Build internal QA checklist for output quality
+37,
+38,### Day 5 — Sales Assets + Demo Prep
+39,- Write one-page offer sheet per MVP
+40,- Draft short pitch script (under 2 minutes)
+41,- Create demo outline and objection handling notes
+42,- Draft pricing hypothesis (pilot pricing)
+43,
+44,### Day 6 — Internal Dry Run
+45,- Run 5 test scenarios per MVP
+46,- Validate output quality and consistency
+47,- Log bugs/gaps and prioritize fixes
+48,- Confirm handoff process for Week 2 build
+49,
+50,### Day 7 — Freeze Week 1 + Week 2 Build Kickoff
+51,- Lock v1 specs
+52,- Lock role ownership and timeline for Week 2
+53,- Publish final Week 1 summary
+54,- Final go/no-go check for MVP build sprint
+55,
+56,---
+57,
+58,## Role-Based Checklists
+59,
+60,## Chea (Owner / Sales / Final Decision)
+61,- [ ] Approve one-line offer promise for each MVP
+62,- [ ] Approve ICP definitions and target segment priorities
+63,- [ ] Approve must-have feature set (and what is cut)
+64,- [ ] Approve sales script and CTA language
+65,- [ ] Record quick demo narrative points for each offer
+66,- [ ] Own go/no-go decisions at end of Week 1
+67,
+68,## Cory (Execution Manager / QA / Risk Lens)
+69,- [ ] Build the week timeline and owner-by-task board
+70,- [ ] Track daily completion and unblock dependencies
+71,- [ ] Maintain decision log + unresolved issues list
+72,- [ ] Run QA checklist definition with Zack/Anthony
+73,- [ ] Flag scope creep and keep v1 tight
+74,- [ ] Publish Week 1 status summary and Week 2 task plan
+75,
+76,## Zack (Software Build Lead)
+77,- [ ] Define technical architecture for both MVPs
+78,- [ ] Define data model for form inputs and AI outputs
+79,- [ ] Draft API/service requirements and dependencies
+80,- [ ] Build prompt execution pattern and output validators
+81,- [ ] Define core app repo structure + coding plan for Week 2
+82,- [ ] Estimate build effort by module and risk
+83,
+84,## Anthony (Systems + Automation)
+85,- [ ] Design automation flow (intake → processing → delivery)
+86,- [ ] Plan integrations (CRM/email/calendar/notifications)
+87,- [ ] Define monitoring/logging checks for workflow reliability
+88,- [ ] Draft fallback/exception handling flows
+89,- [ ] Prepare low-friction internal tools for testing runs
+90,- [ ] Document integration checklist for Week 2 execution
+91,
+92,---
+93,
+94,## Definition of Done (End of Week 1)
+95,- [ ] Two signed-off MVP briefs
+96,- [ ] Scope locked (must-have only)
+97,- [ ] Workflow maps complete
+98,- [ ] Intake + output templates drafted
+99,- [ ] Sales one-pagers + demo scripts ready
+100,- [ ] Week 2 build plan assigned by owner
+101,
+102,---
+103,
+104,## Notes for Operating Style
+105,- Keep communication short/direct
+106,- Bias toward execution over discussion
+107,- Use Chea for closing + final ideation decisions
+108,- Keep admin overhead minimal

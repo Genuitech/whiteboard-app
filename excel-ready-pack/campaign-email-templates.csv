@@ -1,0 +1,38 @@
+template_key,subject,body
+email_1_direct,Quick tax/bookkeeping check for 2026,"Hi {{first_name}},
+
+I help high-income earners and business owners reduce tax drag and tighten bookkeeping so decisions are cleaner year-round.
+
+If you’re at $100k+ income, there are usually a few strategy levers worth reviewing before year-end.
+
+Open to a quick 30-min strategy call?
+https://calendly.com/cromine-rhw/30-min-zoom
+
+– Chea Romine, CPA / Managing Partner
+cromine@rhwcpas.com"
+email_2_value,3 common misses I see at $100k+ income,"Hi {{first_name}},
+
+Three common gaps I see:
+1) Income structure not optimized
+2) Deductions not planned early enough
+3) Bookkeeping too delayed to be useful
+
+If helpful, I can walk through your setup and show where savings/opportunities may exist.
+https://calendly.com/cromine-rhw/30-min-zoom
+
+– Chea"
+email_3_social_proof,Similar clients usually find 1–3 immediate improvements,"Hi {{first_name}},
+
+Most clients in your range find immediate improvements once we review structure + books together.
+
+If you want, we can do a focused 30-min review and I’ll give clear next steps.
+https://calendly.com/cromine-rhw/30-min-zoom
+
+– Chea"
+email_4_breakup,Close the loop?,"Hi {{first_name}},
+
+Should I close this out, or do you want a quick strategy session on tax + bookkeeping optimization?
+
+If yes, book here: https://calendly.com/cromine-rhw/30-min-zoom
+
+– Chea"

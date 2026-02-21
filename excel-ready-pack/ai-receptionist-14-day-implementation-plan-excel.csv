@@ -1,0 +1,165 @@
+line_no,text
+1,Subject: 14-Day Implementation Plan — AI Receptionist + Outlook Scheduling + Return Status Lookup
+2,
+3,"Hi Chea,"
+4,
+5,Below is your 14-day implementation plan for an AI receptionist that can:
+6,1) Schedule meetings on employee Outlook calendars
+7,2) Route leads to the right team member
+8,3) Check return status in UltraTax + GoFileRoom
+9,
+10,==================================================
+11,TOOL STACK (what you need)
+12,==================================================
+13,
+14,1) Scheduling layer (required)
+15,- Microsoft Graph API (Outlook calendars)
+16,  - Read free/busy
+17,  - Create/modify/cancel meetings
+18,  - Assign by employee/role
+19,- Optional: Calendly routing (simpler booking UX)
+20,
+21,2) Conversation layer (receptionist)
+22,- Voice/SMS/Chat channel
+23,  - Phone: Twilio or Zoom Phone API
+24,  - Text: WhatsApp/SMS/Webchat
+25,- LLM agent for intake + booking logic
+26,"  - Ask reason, urgency, service type"
+27,  - Route to right employee and book slot
+28,
+29,3) Orchestration layer
+30,- n8n (recommended) or Zapier/Make
+31,  - Trigger from incoming call/message
+32,  - Check Outlook availability
+33,  - Book meeting
+34,  - Send confirmations/reminders
+35,  - Create follow-up tasks
+36,
+37,4) Return-status layer (UltraTax + GoFileRoom)
+38,- RPA first: UiPath or Power Automate Desktop
+39,  - Pull status from UltraTax + GoFileRoom
+40,"  - Return response to agent (“In review”, “Awaiting docs”, etc.)"
+41,"- API later: if Thomson Reuters APIs are available, replace RPA with direct calls"
+42,
+43,5) Data + security
+44,- CRM/lead store: Airtable/HubSpot/Sheets/SQL
+45,- Audit log for all booking/status lookups
+46,- Access controls via Microsoft Entra + least privilege
+47,
+48,==================================================
+49,14-DAY IMPLEMENTATION PLAN
+50,==================================================
+51,
+52,Day 1 — Architecture + Scope Lock
+53,- Finalize channels (phone + WhatsApp/SMS)
+54,- Define receptionist scope (bookings + status lookup)
+55,- Define service routing rules by department/employee
+56,"- Lock success metrics (bookings completed, response time, lookup accuracy)"
+57,
+58,Day 2 — Accounts + Access
+59,- Set up Microsoft Graph app registration
+60,- Configure delegated/app permissions for calendars
+61,- Set up Twilio (or chosen channel) credentials
+62,- Stand up n8n instance/workspace
+63,
+64,Day 3 — Calendar Model
+65,"- Build employee calendar directory (name, role, calendar ID, booking constraints)"
+66,"- Define booking windows, buffers, blackout rules"
+67,- Define meeting types + durations
+68,
+69,Day 4 — Intake Flows
+70,"- Create intake script for receptionist (new lead, existing client, return-status request)"
+71,"- Define required fields (name, phone/email, reason, urgency)"
+72,- Add qualification logic and routing tags
+73,
+74,Day 5 — Booking Workflow (v1)
+75,- Build n8n flow: incoming inquiry -> availability check -> slot options -> booking create
+76,- Add confirmation message templates
+77,- Add fallback if no slot is available
+78,
+79,Day 6 — Reschedule/Cancel Workflow
+80,- Build modification flow (reschedule/cancel)
+81,- Add guardrails for same-day/no-show edge cases
+82,- Confirm updates sync correctly to Outlook
+83,
+84,Day 7 — Logging + Dashboard
+85,"- Create activity log table (who, what, when, outcome)"
+86,"- Add daily KPI view: requests, booked, failed, avg response time"
+87,- Add exception queue for human follow-up
+88,
+89,Day 8 — UltraTax/GoFileRoom Status Mapping
+90,- Define exact status categories to expose to receptionist
+91,- Map UltraTax triggers to standardized status language
+92,- Map GoFileRoom workflow states to user-friendly responses
+93,
+94,Day 9 — RPA Status Bot (v1)
+95,- Build bot to fetch status from UltraTax/GoFileRoom
+96,- Return standardized status payload to n8n
+97,- Add timeout/retry logic and exception handling
+98,
+99,Day 10 — Receptionist + Status Integration
+100,- Add “check status” intent in receptionist flow
+101,- Connect intent -> RPA status lookup -> response template
+102,- Add escalation path for unknown or conflicting status
+103,
+104,Day 11 — Security + Compliance Hardening
+105,- Lock permissions to minimum required scopes
+106,- Add auth checks for status requests (client identity verification)
+107,- Validate audit trails for all status and booking actions
+108,
+109,Day 12 — Internal UAT
+110,- Run 20–30 test scenarios across booking and status checks
+111,- Validate routing accuracy and booking integrity
+112,- Capture defects and prioritize fixes
+113,
+114,Day 13 — Pilot Launch
+115,- Launch to one admin subgroup first
+116,- Monitor live usage and failures
+117,"- Daily standup: issues, fixes, adoption blockers"
+118,
+119,Day 14 — Production Rollout
+120,- Roll out to full admin team
+121,- Train staff on exception handling
+122,- Publish SOP + ownership matrix
+123,- Set Week 3 optimization backlog
+124,
+125,==================================================
+126,OWNERSHIP SPLIT (recommended)
+127,==================================================
+128,
+129,Chea
+130,"- Final business rules, service priorities, customer experience standards"
+131,- Final sign-off on routing and escalation policies
+132,
+133,Cory
+134,- Project manager + QA lead
+135,"- Risk checks, scope discipline, rollout checklist owner"
+136,
+137,Zack
+138,"- Integration architecture, Graph API, orchestration logic quality"
+139,- Reliability and maintainability standards
+140,
+141,Anthony
+142,"- n8n automations, RPA workflows, system tuning/efficiency improvements"
+143,- Exception handling + monitoring setup
+144,
+145,==================================================
+146,MVP GO-LIVE DEFINITION
+147,==================================================
+148,
+149,System is considered live when:
+150,- >=90% of booking requests auto-handled without manual intervention
+151,- Return-status lookup accuracy >=95% in pilot set
+152,- Audit logging present for 100% of actions
+153,- Exception queue response SLA defined and active
+154,
+155,==================================================
+156,NEXT STEP TODAY
+157,==================================================
+158,
+159,Approve this plan and I’ll draft:
+160,1) exact n8n workflow blueprint
+161,2) Microsoft Graph permission matrix
+162,3) receptionist conversation scripts (booking + status lookup)
+163,
+164,– Dexter

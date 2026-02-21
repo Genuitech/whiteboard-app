@@ -1,0 +1,44 @@
+line_no,text
+1,# UltraTax + GoFileRoom Automation Plan
+2,
+3,## Problem Statement
+4,Chea has two software systems (Thomson Reuters UltraTax CS and GoFileRoom) that currently require manual administrative processing. The goal is to automatically move projects through GoFileRoom when specific actions/events happen in UltraTax.
+5,
+6,## Recommended Approach
+7,
+8,### Phase 1 (Quick Win: 3–5 days) — RPA Bot
+9,Use UiPath or Power Automate Desktop to:
+10,"1. Read UltraTax output/event signal (status report, exported CSV, or completed print set)"
+11,2. Match client/return
+12,3. Open GoFileRoom
+13,4. Move workflow/project step automatically
+14,5. Write audit log + exception queue
+15,
+16,Why: fastest path to reduce admin burden without waiting for deep API implementation.
+17,
+18,### Phase 2 (Robust Integration: 2–4 weeks) — API/Middleware
+19,Replace UI automation with direct integration where possible:
+20,- Trigger source: UltraTax status/export events
+21,"- Rules engine: If event X, move to GoFileRoom step Y"
+22,- Destination: GoFileRoom workflow/project update
+23,"- Add retries, monitoring dashboard, and alerting"
+24,
+25,## Example Workflow Rules
+26,"- UltraTax Event: Return marked ""Ready for Review"""
+27,"  - GoFileRoom Action: Move project to ""Reviewer Queue"""
+28,
+29,"- UltraTax Event: Return ""E-file Accepted"""
+30,"  - GoFileRoom Action: Move to ""Assemble/Deliver"""
+31,
+32,"- UltraTax Event: Return ""Client Copy Delivered"""
+33,"  - GoFileRoom Action: Move to ""Complete"""
+34,
+35,## Info Needed to Build Exact Implementation
+36,1. UltraTax trigger events (exact statuses/actions)
+37,2. Current GoFileRoom workflow steps
+38,"3. Matching key between systems (Client ID, SSN, return ID, etc.)"
+39,4. Whether GoFileRoom API access/docs are available from Thomson Reuters
+40,"5. Preferred tool: UiPath, Power Automate, or fastest-recommended"
+41,
+42,## Outcome
+43,A build-ready implementation spec can be produced immediately once the above inputs are provided.

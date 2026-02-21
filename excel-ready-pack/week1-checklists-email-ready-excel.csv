@@ -1,0 +1,117 @@
+line_no,text
+1,Subject: Week 1 Build Checklists (Day 1–7) – AI Product Sprint
+2,
+3,"Hi team,"
+4,
+5,Below is the Week 1 execution checklist for our 30-day AI product sprint.
+6,
+7,Objectives this week:
+8,- Lock scope for 2 MVPs:
+9,  1) Tax Strategy AI Pre-Screen
+10,  2) SOP/Workflow AI Builder (non-tax)
+11,- Assign clear ownership by partner strengths
+12,- Produce demo-ready artifacts for Week 2 build
+13,
+14,=====================================
+15,DAILY PLAN (ALL-TEAM)
+16,=====================================
+17,
+18,Day 1 — Offer Clarity + ICP
+19,- Finalize one-line promise for both MVPs
+20,- Define Ideal Customer Profile (ICP) for each
+21,- Define top 3 pain points per ICP
+22,"- Define success metric per MVP (time saved, lead conversion, etc.)"
+23,
+24,Day 2 — Scope (Must-Have Only)
+25,- Decide v1 must-have features only
+26,- Explicitly cut nice-to-have items
+27,- Define input/output schema for both products
+28,- Draft acceptance criteria
+29,
+30,Day 3 — Workflow Mapping
+31,- Map end-to-end user journey for both MVPs
+32,- Define data handoffs (form → AI → report/task output)
+33,- Define integration points (CRM/email/calendar)
+34,- Identify failure points and fallback flows
+35,
+36,Day 4 — UX + Prompt + Template Drafting
+37,- Create intake forms/questions
+38,- Draft AI prompt frameworks and output templates
+39,- Create first draft reports/deliverables users receive
+40,- Build internal QA checklist for output quality
+41,
+42,Day 5 — Sales Assets + Demo Prep
+43,- Write one-page offer sheet per MVP
+44,- Draft short pitch script (under 2 minutes)
+45,- Create demo outline and objection handling notes
+46,- Draft pricing hypothesis (pilot pricing)
+47,
+48,Day 6 — Internal Dry Run
+49,- Run 5 test scenarios per MVP
+50,- Validate output quality and consistency
+51,- Log bugs/gaps and prioritize fixes
+52,- Confirm handoff process for Week 2 build
+53,
+54,Day 7 — Freeze Week 1 + Week 2 Build Kickoff
+55,- Lock v1 specs
+56,- Lock role ownership and timeline for Week 2
+57,- Publish final Week 1 summary
+58,- Final go/no-go check for MVP build sprint
+59,
+60,=====================================
+61,ROLE-BASED CHECKLISTS
+62,=====================================
+63,
+64,Chea (Owner / Sales / Final Decision)
+65,- Approve one-line offer promise for each MVP
+66,- Approve ICP definitions and target segment priorities
+67,- Approve must-have feature set (and what is cut)
+68,- Approve sales script and CTA language
+69,- Record quick demo narrative points for each offer
+70,- Own go/no-go decisions at end of Week 1
+71,
+72,Cory (Execution Manager / QA / Risk Lens)
+73,- Build the week timeline and owner-by-task board
+74,- Track daily completion and unblock dependencies
+75,- Maintain decision log + unresolved issues list
+76,- Run QA checklist definition with Zack/Anthony
+77,- Flag scope creep and keep v1 tight
+78,- Publish Week 1 status summary and Week 2 task plan
+79,
+80,Zack (Software Build Lead)
+81,- Define technical architecture for both MVPs
+82,- Define data model for form inputs and AI outputs
+83,- Draft API/service requirements and dependencies
+84,- Build prompt execution pattern and output validators
+85,- Define core app repo structure + coding plan for Week 2
+86,- Estimate build effort by module and risk
+87,
+88,Anthony (Systems + Automation)
+89,- Design automation flow (intake → processing → delivery)
+90,- Plan integrations (CRM/email/calendar/notifications)
+91,- Define monitoring/logging checks for workflow reliability
+92,- Draft fallback/exception handling flows
+93,- Prepare low-friction internal tools for testing runs
+94,- Document integration checklist for Week 2 execution
+95,
+96,=====================================
+97,DEFINITION OF DONE (END OF WEEK 1)
+98,=====================================
+99,- Two signed-off MVP briefs
+100,- Scope locked (must-have only)
+101,- Workflow maps complete
+102,- Intake + output templates drafted
+103,- Sales one-pagers + demo scripts ready
+104,- Week 2 build plan assigned by owner
+105,
+106,Operating notes:
+107,- Keep communication short/direct
+108,- Bias toward execution over discussion
+109,- Chea owns closing + final ideation decisions
+110,- Minimize admin overhead
+111,
+112,"Thanks,"
+113,"Chea Romine, CPA"
+114,Managing Partner
+115,cromine@rhwcpas.com
+116,https://calendly.com/cromine-rhw/30-min-zoom
