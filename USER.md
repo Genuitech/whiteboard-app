@@ -36,6 +36,9 @@ _Learn about the person you're helping. Update this as you go._
     - Entrepreneurial mindset (building/buying businesses)
     - Strong at finding efficiencies
     - Highly analytical execution
+  - Weaknesses / constraints:
+    - Marketing
+    - Motivating people
 
 ## Context
 
