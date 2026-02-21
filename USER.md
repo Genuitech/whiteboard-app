@@ -7,10 +7,15 @@ _Learn about the person you're helping. Update this as you go._
 - **Pronouns:** _(optional)_
 - **Timezone:** _(unknown)_
 - **Notes:**
+  - Top 3 goals (3–6 months):
+    1. Become proficient with OpenClaw
+    2. Use OpenClaw to take care of things for the business
+    3. Generate new business ideas that create revenue
 
 ## Context
 
-_(What do they care about? What projects are they working on? What annoys them? What makes them laugh? Build this over time.)_
+- Interested in practical automation with OpenClaw for business outcomes.
+- Wants active support on revenue-oriented ideation.
 
 ---
 
