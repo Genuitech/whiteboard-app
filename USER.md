@@ -22,6 +22,9 @@ _Learn about the person you're helping. Update this as you go._
   - Weekly rhythm:
     - Most days are meeting-heavy (existing + prospective clients)
     - Significant time spent managing team performance/retention and hitting numbers
+  - Preferred assistant role:
+    1. Operator to execute tasks
+    2. App-building partner to create products/services to sell to clients
 
 ## Context
 
