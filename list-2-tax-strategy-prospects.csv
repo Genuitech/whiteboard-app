@@ -1,0 +1,11 @@
+lead_id,segment,platform,source_url,contact_path,intent_signal,income_fit,status,notes
+TSP-001,Business Owner,DealStream,https://dealstream.com/united-states/large-businesses-for-sale,listing contact form,Active sale process implies tax strategy need,likely 100k+,RAW,Need listing-level owner/direct contact extraction
+TSP-002,Business Owner,DealStream,https://dealstream.com/large-businesses-for-sale,listing contact form,Owner/exit planning intent,likely 100k+,RAW,Use as source feed for outreach list
+TSP-003,Business Seller,BizBuySell,https://www.bizbuysell.com/businesses-for-sale/,listing inquiry form,Exit tax planning signal,likely 100k+,RAW,Apply owner-contact-path rule before campaign inclusion
+TSP-004,Business Seller,BizBuySell,https://www.bizbuysell.com/start-up-businesses-for-sale/,listing inquiry form,Business sale planning signal,likely 100k+,RAW,Need listing-level extraction
+TSP-005,High-income Professional,BizBuySell,https://www.bizbuysell.com/veterinary-practices-for-sale/,listing inquiry form,Professional owner likely tax complexity,likely 100k+,RAW,Use vertical-based messaging (practice sale/tax planning)
+TSP-006,Business Owner,BizBuySell,https://www.bizbuysell.com/pet-service-businesses-for-sale/3/,listing inquiry form,Owners evaluating sale/expansion,likely 100k+,RAW,Potential duplicate with TSP-005 source
+TSP-007,Business Owner,BizBuySell,https://www.bizbuysell.com/california/absentee-run-businesses-for-sale/,listing inquiry form,Passive-income/operator tax planning angle,likely 100k+,RAW,Use ongoing tax strategy messaging not just exit
+TSP-008,Business Owner,BizBuySell,https://www.bizbuysell.com/new-york/absentee-run-businesses-for-sale/,listing inquiry form,Passive ownership tax strategy intent,likely 100k+,RAW,Segment for owner-operator tax optimization
+TSP-009,Business Owner,BizBuySell,https://www.bizbuysell.com/florida-businesses-for-sale/,listing inquiry form,Acquisition/sale tax strategy angle,likely 100k+,RAW,Needs contact and owner-path validation
+TSP-010,Business Owner,BizQuest,https://www.bizquest.com/businesses-for-sale-price-over-5m/,marketplace contact,Exit planning/high-income tax need,likely 100k+,RAW,Direct scrape blocked; manual extraction needed
