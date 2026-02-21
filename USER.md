@@ -62,6 +62,9 @@ _Learn about the person you're helping. Update this as you go._
     - Reply email: cromine@rhwcpas.com
     - Booking link: https://calendly.com/cromine-rhw/30-min-zoom
     - Core offer line: Multiple ways to reduce your tax bill when selling your business.
+  - Lead targeting preference:
+    - Include anyone seeking tax strategy (not limited to business sellers)
+    - Include W-2/high-income earners and business owners seeking ongoing tax savings
   - Collaboration preference:
     - Wants to involve 3 friend-partners with complementary skill sets for new-idea generation
   - Partner profile: Cory
