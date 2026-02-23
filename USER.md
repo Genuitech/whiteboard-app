@@ -108,6 +108,15 @@ _Learn about the person you're helping. Update this as you go._
       - Overexplaining
       - Confidence
       - Taking on others' issues before handling own priorities
+  - Partner profile: Chadd
+    - Email: Chaddjpierce@gmail.com
+    - Core skill set: Sales and marketing
+    - Availability: ~30 hours/week
+    - Strengths:
+      - Works hard
+      - Designs systems
+    - Weaknesses:
+      - Needs direction/input on what to do
 
 ## Context
 
