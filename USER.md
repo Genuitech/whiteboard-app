@@ -82,6 +82,7 @@ _Learn about the person you're helping. Update this as you go._
       - Risk-averse
       - Frugal
   - Partner profile: Zack
+    - Email: Zbyers07@gmail.com
     - Core skill set: Software engineering / app development
     - Best at: Coding and technical implementation of apps
     - Should not own: Sales
