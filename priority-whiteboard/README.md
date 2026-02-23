@@ -1,17 +1,18 @@
-# Priority Whiteboard MVP
+# Priority Whiteboard MVP (Realtime Team Edition)
 
-Collaborative-style idea board to capture opportunities, sort into **Do Now / Do Next / Later**, vote, and rank with a weighted priority score.
+Collaborative idea board to capture opportunities, sort into **Do Now / Do Next / Later**, vote, and rank with a weighted priority score.
 
-## Features (v1)
+## Features
 
 - Add idea cards with notes
 - Score factors: Impact, Revenue, Urgency, Confidence, Effort
 - Automatic priority score + Top 5 leaderboard
 - Drag cards between columns
-- Team voting (simple vote count)
-- Assign owner and due date on cards
+- Team voting
+- Assign owner and due date
 - Promote any card to **Do Now**
-- Local persistence in browser (localStorage)
+- **Realtime collaboration (Supabase Postgres + Realtime)**
+- Local-mode fallback if env vars aren’t configured
 
 ## Priority Formula
 
@@ -25,7 +26,16 @@ Score =
 + (Votes × 0.40)
 ```
 
-## Run locally
+## 1) Supabase setup
+
+1. Create a Supabase project
+2. In Supabase SQL editor, run: `supabase/schema.sql`
+3. Copy `.env.example` to `.env`
+4. Fill:
+   - `VITE_SUPABASE_URL`
+   - `VITE_SUPABASE_ANON_KEY`
+
+## 2) Run locally
 
 ```bash
 npm install
@@ -34,16 +44,14 @@ npm run dev
 
 Open: http://localhost:5173
 
-## Deploy
+## 3) Deploy (Vercel)
 
 - Push this folder to GitHub
-- Import to Vercel (Framework preset: Vite)
+- Import repo/project in Vercel (Framework: Vite)
+- Add env vars in Vercel project settings
 - Deploy
 
-## Suggested v2 (true realtime multi-user)
+## Notes
 
-- Supabase/Postgres tables for ideas + votes
-- Realtime channel subscriptions per board
-- User auth + vote limits per teammate
-- Board sharing with invite links
-- Activity feed + edit history
+- Current policies are open for fast team demo usage.
+- For production, add auth and per-user vote limits.

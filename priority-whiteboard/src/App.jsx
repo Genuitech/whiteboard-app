@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import './App.css'
+import { hasSupabase, supabase } from './supabase'
 
 const COLUMNS = ['Do Now', 'Do Next', 'Later']
 const SCORE_WEIGHTS = {
@@ -10,7 +11,7 @@ const SCORE_WEIGHTS = {
   effortPenalty: 0.25,
 }
 
-const seedIdeas = [
+const localSeedIdeas = [
   {
     id: crypto.randomUUID(),
     title: 'Automate client onboarding packet',
@@ -33,6 +34,41 @@ const seedIdeas = [
   },
 ]
 
+function rowToIdea(row) {
+  return {
+    id: row.id,
+    title: row.title,
+    notes: row.notes || '',
+    column: row.column_name,
+    votes: row.votes,
+    owner: row.owner || '',
+    dueDate: row.due_date || '',
+    metrics: {
+      impact: row.impact,
+      revenue: row.revenue,
+      urgency: row.urgency,
+      confidence: row.confidence,
+      effort: row.effort,
+    },
+  }
+}
+
+function ideaToRow(idea) {
+  return {
+    title: idea.title,
+    notes: idea.notes || '',
+    column_name: idea.column,
+    votes: idea.votes,
+    owner: idea.owner || '',
+    due_date: idea.dueDate || null,
+    impact: idea.metrics.impact,
+    revenue: idea.metrics.revenue,
+    urgency: idea.metrics.urgency,
+    confidence: idea.metrics.confidence,
+    effort: idea.metrics.effort,
+  }
+}
+
 function priorityScore(idea) {
   const { impact, revenue, urgency, confidence, effort } = idea.metrics
   return (
@@ -48,8 +84,9 @@ function priorityScore(idea) {
 function App() {
   const [ideas, setIdeas] = useState(() => {
     const raw = localStorage.getItem('priority-whiteboard-ideas')
-    return raw ? JSON.parse(raw) : seedIdeas
+    return raw ? JSON.parse(raw) : localSeedIdeas
   })
+  const [status, setStatus] = useState(hasSupabase ? 'Connecting to realtime…' : 'Local mode')
 
   const [newIdea, setNewIdea] = useState({
     title: '',
@@ -61,8 +98,47 @@ function App() {
   const [draggedId, setDraggedId] = useState(null)
 
   useEffect(() => {
-    localStorage.setItem('priority-whiteboard-ideas', JSON.stringify(ideas))
-  }, [ideas])
+    if (!hasSupabase) {
+      localStorage.setItem('priority-whiteboard-ideas', JSON.stringify(ideas))
+      return
+    }
+
+    let ignore = false
+
+    async function loadIdeas() {
+      const { data, error } = await supabase
+        .from('ideas')
+        .select('*')
+        .order('updated_at', { ascending: false })
+
+      if (error) {
+        setStatus('Realtime error (using local cache)')
+        return
+      }
+      if (!ignore) {
+        setIdeas((data || []).map(rowToIdea))
+        setStatus('Realtime connected')
+      }
+    }
+
+    loadIdeas()
+
+    const channel = supabase
+      .channel('ideas-realtime')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'ideas' },
+        () => loadIdeas(),
+      )
+      .subscribe((state) => {
+        if (state === 'SUBSCRIBED') setStatus('Realtime connected')
+      })
+
+    return () => {
+      ignore = true
+      supabase.removeChannel(channel)
+    }
+  }, [])
 
   const groupedIdeas = useMemo(() => {
     const grouped = Object.fromEntries(COLUMNS.map((column) => [column, []]))
@@ -73,7 +149,7 @@ function App() {
     return grouped
   }, [ideas])
 
-  function addIdea(e) {
+  async function addIdea(e) {
     e.preventDefault()
     if (!newIdea.title.trim()) return
 
@@ -88,7 +164,13 @@ function App() {
       metrics: newIdea.metrics,
     }
 
-    setIdeas((prev) => [idea, ...prev])
+    if (hasSupabase) {
+      const { error } = await supabase.from('ideas').insert(ideaToRow(idea))
+      if (error) return setStatus(`Insert failed: ${error.message}`)
+    } else {
+      setIdeas((prev) => [idea, ...prev])
+    }
+
     setNewIdea({
       title: '',
       notes: '',
@@ -97,8 +179,18 @@ function App() {
     })
   }
 
-  function updateIdea(id, updateFn) {
-    setIdeas((prev) => prev.map((idea) => (idea.id === id ? updateFn(idea) : idea)))
+  async function updateIdea(id, updateFn) {
+    const current = ideas.find((idea) => idea.id === id)
+    if (!current) return
+
+    const updated = updateFn(current)
+
+    if (hasSupabase) {
+      const { error } = await supabase.from('ideas').update(ideaToRow(updated)).eq('id', id)
+      if (error) setStatus(`Update failed: ${error.message}`)
+    } else {
+      setIdeas((prev) => prev.map((idea) => (idea.id === id ? updated : idea)))
+    }
   }
 
   function onDropColumn(column) {
@@ -121,6 +213,7 @@ function App() {
       <header>
         <h1>Priority Whiteboard</h1>
         <p>Capture ideas, vote, and rank what the team should build now.</p>
+        <p className="status">Mode: {status}</p>
       </header>
 
       <section className="composer">
@@ -200,16 +293,12 @@ function App() {
                   <input
                     placeholder="Owner"
                     value={idea.owner}
-                    onChange={(e) =>
-                      updateIdea(idea.id, (i) => ({ ...i, owner: e.target.value }))
-                    }
+                    onChange={(e) => updateIdea(idea.id, (i) => ({ ...i, owner: e.target.value }))}
                   />
                   <input
                     type="date"
                     value={idea.dueDate}
-                    onChange={(e) =>
-                      updateIdea(idea.id, (i) => ({ ...i, dueDate: e.target.value }))
-                    }
+                    onChange={(e) => updateIdea(idea.id, (i) => ({ ...i, dueDate: e.target.value }))}
                   />
                 </div>
               </article>
