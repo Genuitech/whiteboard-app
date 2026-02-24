@@ -80,7 +80,7 @@ function App() {
           (reasons.get(name) || []).length >= 2
             ? `Similar to ${reasons.get(name).slice(0, 2).join(' and ')}.`
             : `Similar to ${(reasons.get(name) || [])[0]}.`,
-        link: `https://music.apple.com/us/search?term=${encodeURIComponent(name)}`,
+        link: `https://www.youtube.com/results?search_query=${encodeURIComponent(name)}`,
       }))
   }, [selected])
 
@@ -129,7 +129,7 @@ function App() {
                 <div className="actions">
                   <span className="score">Match {artist.match}</span>
                   <a href={artist.link} target="_blank" rel="noreferrer">
-                    Open music ↗
+                    Open on YouTube ↗
                   </a>
                 </div>
               </li>
