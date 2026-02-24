@@ -20,6 +20,8 @@ const TEAM_MEMBERS = [
   { name: 'Zack', email: 'Zbyers07@gmail.com' },
 ]
 
+const ASSIGNMENT_WEBHOOK = import.meta.env.VITE_ASSIGNMENT_WEBHOOK_URL || ''
+
 const localSeedIdeas = [
   {
     id: crypto.randomUUID(),
@@ -165,6 +167,8 @@ function App() {
   })
 
   const [draggedId, setDraggedId] = useState(null)
+  const [assigneeFilter, setAssigneeFilter] = useState('All')
+  const [myTasksFor, setMyTasksFor] = useState('Chea')
 
   useEffect(() => {
     if (!hasSupabase) {
@@ -213,10 +217,32 @@ function App() {
     const grouped = Object.fromEntries(COLUMNS.map((column) => [column, []]))
     ideas
       .map((idea) => ({ ...idea, score: priorityScore(idea) }))
+      .filter((idea) => assigneeFilter === 'All' || (idea.owner || 'Unassigned') === assigneeFilter)
       .sort((a, b) => b.score - a.score)
       .forEach((idea) => grouped[idea.column].push(idea))
     return grouped
-  }, [ideas])
+  }, [ideas, assigneeFilter])
+
+  const myTasks = useMemo(
+    () => ideas.filter((idea) => idea.owner === myTasksFor).sort((a, b) => priorityScore(b) - priorityScore(a)),
+    [ideas, myTasksFor],
+  )
+
+  async function notifyAssignment(idea, assigneeName) {
+    if (!ASSIGNMENT_WEBHOOK || !assigneeName || assigneeName === 'Unassigned') return
+    const member = TEAM_MEMBERS.find((m) => m.name === assigneeName)
+    if (!member?.email) return
+
+    await fetch(ASSIGNMENT_WEBHOOK, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        to: member.email,
+        subject: `New whiteboard assignment: ${idea.title}`,
+        body: `Hi ${assigneeName},\n\nYou were assigned a task in Priority Whiteboard.\n\nTask: ${idea.title}\nColumn: ${idea.column}\nDue date: ${idea.dueDate || 'Not set'}\n\nOpen board: https://priority-whiteboard.vercel.app\n`,
+      }),
+    })
+  }
 
   async function addIdea(e) {
     e.preventDefault()
@@ -260,6 +286,10 @@ function App() {
     } else {
       setIdeas((prev) => prev.map((idea) => (idea.id === id ? updated : idea)))
     }
+
+    if (updated.owner !== current.owner) {
+      notifyAssignment(updated, updated.owner)
+    }
   }
 
   function onDropColumn(column) {
@@ -284,6 +314,20 @@ function App() {
         <p>Capture ideas, vote, and rank what the team should build now.</p>
         <p className="status">Mode: {status}</p>
       </header>
+
+      <section className="filters">
+        <label>
+          Filter by assignee
+          <select value={assigneeFilter} onChange={(e) => setAssigneeFilter(e.target.value)}>
+            <option value="All">All</option>
+            {TEAM_MEMBERS.map((member) => (
+              <option key={member.name} value={member.name}>
+                {member.name}
+              </option>
+            ))}
+          </select>
+        </label>
+      </section>
 
       <section className="composer">
         <form onSubmit={addIdea}>
@@ -386,6 +430,28 @@ function App() {
           </div>
         ))}
       </main>
+
+      <section className="my-tasks">
+        <h2>My Tasks View</h2>
+        <label>
+          Team member
+          <select value={myTasksFor} onChange={(e) => setMyTasksFor(e.target.value)}>
+            {TEAM_MEMBERS.filter((m) => m.name !== 'Unassigned').map((member) => (
+              <option key={member.name} value={member.name}>
+                {member.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <ul>
+          {myTasks.length === 0 && <li>No tasks assigned.</li>}
+          {myTasks.map((task) => (
+            <li key={task.id}>
+              {task.title} — {task.column} — due {task.dueDate || 'TBD'}
+            </li>
+          ))}
+        </ul>
+      </section>
 
       <section className="leaderboard">
         <h2>Top 5 by priority score</h2>

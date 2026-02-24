@@ -10,6 +10,8 @@ Collaborative idea board to capture opportunities, sort into **Do Now / Do Next 
 - Drag cards between columns
 - Team voting
 - Assign owner and due date
+- Assignee filter and My Tasks view
+- Assignment notification webhook (optional)
 - Promote any card to **Do Now**
 - **Realtime collaboration (Supabase Postgres + Realtime)**
 - Local-mode fallback if env vars aren’t configured
