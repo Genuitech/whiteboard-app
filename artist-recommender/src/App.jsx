@@ -2,6 +2,14 @@ import { useMemo, useState } from 'react'
 import './App.css'
 
 const API = 'https://api.deezer.com'
+const PROXY = 'https://api.allorigins.win/raw?url='
+
+async function fetchDeezerJson(path) {
+  const url = `${PROXY}${encodeURIComponent(`${API}${path}`)}`
+  const res = await fetch(url)
+  if (!res.ok) throw new Error('request-failed')
+  return res.json()
+}
 
 function App() {
   const [query, setQuery] = useState('')
@@ -21,8 +29,9 @@ function App() {
     setError('')
 
     try {
-      const res = await fetch(`${API}/search/artist?q=${encodeURIComponent(query.trim())}&limit=10`)
-      const data = await res.json()
+      const data = await fetchDeezerJson(
+        `/search/artist?q=${encodeURIComponent(query.trim())}&limit=10`,
+      )
       setSearchResults(data.data || [])
     } catch {
       setError('Could not search artists right now.')
@@ -48,7 +57,7 @@ function App() {
 
     try {
       const relatedResponses = await Promise.all(
-        selected.map((artist) => fetch(`${API}/artist/${artist.id}/related?limit=25`).then((r) => r.json())),
+        selected.map((artist) => fetchDeezerJson(`/artist/${artist.id}/related?limit=25`)),
       )
 
       const map = new Map()
