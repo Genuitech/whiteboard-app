@@ -4,6 +4,29 @@ import './App.css'
 const API = 'https://api.deezer.com'
 const PROXY = 'https://api.allorigins.win/raw?url='
 
+const QUICK_PICK_ARTISTS = [
+  'Playboi Carti',
+  'Destroy Lonely',
+  'Ken Carson',
+  'Homixide Gang',
+  'Yeat',
+  'SoFaygo',
+  'Cochise',
+  'Lancey Foux',
+  'Travis Scott',
+  'Future',
+  'Lil Uzi Vert',
+  'Don Toliver',
+  'Trippie Redd',
+  'Lucki',
+  'Young Thug',
+  'Gunna',
+  'Ski Mask The Slump God',
+  'Pierre Bourne',
+  'Yung Lean',
+  'Bladee',
+]
+
 async function fetchDeezerJson(path) {
   const url = `${PROXY}${encodeURIComponent(`${API}${path}`)}`
   const res = await fetch(url)
@@ -13,6 +36,7 @@ async function fetchDeezerJson(path) {
 
 function App() {
   const [query, setQuery] = useState('')
+  const [quickPick, setQuickPick] = useState('')
   const [searching, setSearching] = useState(false)
   const [searchResults, setSearchResults] = useState([])
   const [selected, setSelected] = useState([])
@@ -22,16 +46,15 @@ function App() {
 
   const selectedIds = useMemo(() => new Set(selected.map((a) => a.id)), [selected])
 
-  async function searchArtists(e) {
+  async function searchArtists(e, forcedQuery) {
     e?.preventDefault()
-    if (!query.trim()) return
+    const term = (forcedQuery ?? query).trim()
+    if (!term) return
     setSearching(true)
     setError('')
 
     try {
-      const data = await fetchDeezerJson(
-        `/search/artist?q=${encodeURIComponent(query.trim())}&limit=10`,
-      )
+      const data = await fetchDeezerJson(`/search/artist?q=${encodeURIComponent(term)}&limit=10`)
       setSearchResults(data.data || [])
     } catch {
       setError('Could not search artists right now.')
@@ -44,6 +67,13 @@ function App() {
     if (selectedIds.has(artist.id)) return
     if (selected.length >= 3) return
     setSelected((prev) => [...prev, artist])
+  }
+
+  async function handleQuickPick(name) {
+    setQuickPick(name)
+    if (!name) return
+    setQuery(name)
+    await searchArtists(undefined, name)
   }
 
   function removeArtist(id) {
@@ -112,6 +142,22 @@ function App() {
             {searching ? 'Searching...' : 'Search'}
           </button>
         </form>
+
+        <div className="quickPickRow">
+          <label htmlFor="quick-pick">Quick pick</label>
+          <select
+            id="quick-pick"
+            value={quickPick}
+            onChange={(e) => handleQuickPick(e.target.value)}
+          >
+            <option value="">Select an artist…</option>
+            {QUICK_PICK_ARTISTS.map((name) => (
+              <option key={name} value={name}>
+                {name}
+              </option>
+            ))}
+          </select>
+        </div>
 
         <div className="selectedRow">
           <strong>Selected ({selected.length}/3):</strong>
