@@ -11,6 +11,15 @@ const SCORE_WEIGHTS = {
   effortPenalty: 0.25,
 }
 
+const TEAM_MEMBERS = [
+  { name: 'Unassigned', email: '' },
+  { name: 'Chea', email: 'cromine@rhwcpas.com' },
+  { name: 'Cory', email: 'Cc2enterprises@gmail.com' },
+  { name: 'Anthony', email: 'anthony.depassio@gmail.com' },
+  { name: 'Chadd', email: 'Chaddjpierce@gmail.com' },
+  { name: 'Zack', email: 'Zbyers07@gmail.com' },
+]
+
 const localSeedIdeas = [
   {
     id: crypto.randomUUID(),
@@ -341,6 +350,7 @@ function App() {
                 <h3>{idea.title}</h3>
                 {idea.notes && <p>{idea.notes}</p>}
                 <p className="score">Score: {priorityScore(idea).toFixed(2)}</p>
+                <p className="assignee">Assigned: {idea.owner || 'Unassigned'}</p>
 
                 <div className="meta">
                   <button onClick={() => updateIdea(idea.id, (i) => ({ ...i, votes: i.votes + 1 }))}>
@@ -350,11 +360,21 @@ function App() {
                 </div>
 
                 <div className="task-fields">
-                  <input
-                    placeholder="Owner"
-                    value={idea.owner}
-                    onChange={(e) => updateIdea(idea.id, (i) => ({ ...i, owner: e.target.value }))}
-                  />
+                  <select
+                    value={idea.owner || 'Unassigned'}
+                    onChange={(e) =>
+                      updateIdea(idea.id, (i) => ({
+                        ...i,
+                        owner: e.target.value === 'Unassigned' ? '' : e.target.value,
+                      }))
+                    }
+                  >
+                    {TEAM_MEMBERS.map((member) => (
+                      <option key={member.name} value={member.name}>
+                        {member.email ? `${member.name} (${member.email})` : member.name}
+                      </option>
+                    ))}
+                  </select>
                   <input
                     type="date"
                     value={idea.dueDate}
