@@ -575,9 +575,6 @@ function App() {
                       </>
                     ) : (
                       <>
-                        <button onClick={() => updateIdea(idea.id, (i) => ({ ...i, votes: i.votes + 1 }))}>
-                          👍 Vote ({idea.votes})
-                        </button>
                         <button onClick={() => promoteToTask(idea.id)}>Promote to Do Now</button>
                         <button onClick={() => updateIdea(idea.id, (i) => ({ ...i, column: 'Done' }))}>
                           Mark complete
