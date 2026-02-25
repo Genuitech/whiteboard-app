@@ -247,6 +247,14 @@ function priorityScore(idea) {
   )
 }
 
+function defaultTaskMeta() {
+  return {
+    blocked: false,
+    dependencies: '',
+    subtasks: [],
+  }
+}
+
 function App() {
   const [ideas, setIdeas] = useState(() => {
     const raw = localStorage.getItem('priority-whiteboard-ideas')
@@ -272,6 +280,17 @@ function App() {
   const [myTasksFor, setMyTasksFor] = useState('Chea')
   const [editingIdeaId, setEditingIdeaId] = useState(null)
   const [editDraft, setEditDraft] = useState({ title: '', notes: '', column: 'Do Next' })
+  const [taskMeta, setTaskMeta] = useState(() => {
+    const raw = localStorage.getItem('priority-whiteboard-taskmeta')
+    if (!raw) return {}
+
+    try {
+      return JSON.parse(raw)
+    } catch {
+      return {}
+    }
+  })
+  const [summaryText, setSummaryText] = useState('')
 
   useEffect(() => {
     if (!hasSupabase) {
@@ -315,6 +334,10 @@ function App() {
       supabase.removeChannel(channel)
     }
   }, [])
+
+  useEffect(() => {
+    localStorage.setItem('priority-whiteboard-taskmeta', JSON.stringify(taskMeta))
+  }, [taskMeta])
 
   const groupedIdeas = useMemo(() => {
     const grouped = Object.fromEntries(COLUMNS.map((column) => [column, []]))
@@ -406,6 +429,11 @@ function App() {
     }
 
     if (editingIdeaId === id) cancelEditing()
+    setTaskMeta((prev) => {
+      const next = { ...prev }
+      delete next[id]
+      return next
+    })
   }
 
   function onDropColumn(column) {
@@ -439,6 +467,63 @@ function App() {
     cancelEditing()
   }
 
+  function getTaskMeta(id) {
+    return taskMeta[id] || defaultTaskMeta()
+  }
+
+  function updateTaskMeta(id, updateFn) {
+    setTaskMeta((prev) => {
+      const current = prev[id] || defaultTaskMeta()
+      return {
+        ...prev,
+        [id]: updateFn(current),
+      }
+    })
+  }
+
+  function addSubtask(id, text) {
+    const trimmed = text.trim()
+    if (!trimmed) return
+
+    updateTaskMeta(id, (meta) => ({
+      ...meta,
+      subtasks: [...meta.subtasks, { id: crypto.randomUUID(), text: trimmed, done: false }],
+    }))
+  }
+
+  function generateWeeklySummary() {
+    const inProgress = ideas.filter((idea) => idea.column !== 'Done')
+    const completed = ideas.filter((idea) => idea.column === 'Done')
+    const blocked = ideas.filter((idea) => getTaskMeta(idea.id).blocked)
+    const overdue = ideas.filter((idea) => idea.dueDate && idea.dueDate < new Date().toISOString().slice(0, 10))
+
+    const lines = [
+      `Weekly Whiteboard Summary (${new Date().toLocaleDateString()})`,
+      '',
+      `Completed: ${completed.length}`,
+      ...completed.slice(0, 8).map((idea) => `- ${idea.title} (${idea.owner || 'Unassigned'})`),
+      '',
+      `In Progress: ${inProgress.length}`,
+      ...inProgress.slice(0, 10).map((idea) => `- ${idea.title} [${idea.column}] (${idea.owner || 'Unassigned'})`),
+      '',
+      `Blocked: ${blocked.length}`,
+      ...blocked.slice(0, 8).map((idea) => {
+        const meta = getTaskMeta(idea.id)
+        return `- ${idea.title}${meta.dependencies ? ` — blocked by: ${meta.dependencies}` : ''}`
+      }),
+      '',
+      `Overdue: ${overdue.length}`,
+      ...overdue.slice(0, 8).map((idea) => `- ${idea.title} (due ${idea.dueDate})`),
+    ]
+
+    setSummaryText(lines.join('\n'))
+  }
+
+  async function copySummary() {
+    if (!summaryText) return
+    await navigator.clipboard.writeText(summaryText)
+  }
+
   const leaderboard = [...ideas]
     .map((idea) => ({ ...idea, score: priorityScore(idea) }))
     .sort((a, b) => b.score - a.score)
@@ -448,7 +533,7 @@ function App() {
     <div className="app">
       <header>
         <h1>Priority Whiteboard</h1>
-        <p>Capture ideas, vote, and rank what the team should build now.</p>
+        <p>Capture ideas, prioritize execution, and move work to done.</p>
         <p className="status">Mode: {status}</p>
       </header>
 
@@ -524,6 +609,9 @@ function App() {
             {groupedIdeas[column].map((idea) => {
               const isEditing = editingIdeaId === idea.id
 
+              const meta = getTaskMeta(idea.id)
+              const completedSubtasks = meta.subtasks.filter((task) => task.done).length
+
               return (
                 <article
                   key={idea.id}
@@ -564,6 +652,8 @@ function App() {
 
                   <p className="score">Score: {priorityScore(idea).toFixed(2)}</p>
                   <p className="assignee">Assigned: {idea.owner || 'Unassigned'}</p>
+                  {meta.blocked && <p className="blocked">Blocked</p>}
+                  {meta.dependencies && <p className="deps">Depends on: {meta.dependencies}</p>}
 
                   <div className="meta">
                     {isEditing ? (
@@ -611,6 +701,75 @@ function App() {
                       onChange={(e) => updateIdea(idea.id, (i) => ({ ...i, dueDate: e.target.value }))}
                     />
                   </div>
+
+                  <div className="task-fields">
+                    <label>
+                      <input
+                        type="checkbox"
+                        checked={meta.blocked}
+                        onChange={(e) =>
+                          updateTaskMeta(idea.id, (current) => ({ ...current, blocked: e.target.checked }))
+                        }
+                      />
+                      Blocked
+                    </label>
+                    <input
+                      value={meta.dependencies}
+                      onChange={(e) =>
+                        updateTaskMeta(idea.id, (current) => ({ ...current, dependencies: e.target.value }))
+                      }
+                      placeholder="Dependencies"
+                    />
+                  </div>
+
+                  <div className="checklist">
+                    <p>
+                      Checklist ({completedSubtasks}/{meta.subtasks.length})
+                    </p>
+                    {meta.subtasks.map((task) => (
+                      <div key={task.id} className="checklist-item">
+                        <label>
+                          <input
+                            type="checkbox"
+                            checked={task.done}
+                            onChange={() =>
+                              updateTaskMeta(idea.id, (current) => ({
+                                ...current,
+                                subtasks: current.subtasks.map((subtask) =>
+                                  subtask.id === task.id ? { ...subtask, done: !subtask.done } : subtask,
+                                ),
+                              }))
+                            }
+                          />
+                          <span className={task.done ? 'done' : ''}>{task.text}</span>
+                        </label>
+                        <button
+                          className="secondary"
+                          onClick={() =>
+                            updateTaskMeta(idea.id, (current) => ({
+                              ...current,
+                              subtasks: current.subtasks.filter((subtask) => subtask.id !== task.id),
+                            }))
+                          }
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    ))}
+                    <div className="checklist-add">
+                      <input
+                        placeholder="Add checklist item"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault()
+                            addSubtask(idea.id, e.currentTarget.value)
+                            e.currentTarget.value = ''
+                          }
+                        }}
+                      />
+                      <small>Press Enter to add</small>
+                    </div>
+                  </div>
                 </article>
               )
             })}
@@ -649,6 +808,22 @@ function App() {
             </li>
           ))}
         </ol>
+      </section>
+
+      <section className="weekly-summary">
+        <h2>Weekly Summary Export</h2>
+        <div className="meta">
+          <button onClick={generateWeeklySummary}>Generate summary</button>
+          <button className="secondary" onClick={copySummary}>
+            Copy summary
+          </button>
+        </div>
+        <textarea
+          value={summaryText}
+          onChange={(e) => setSummaryText(e.target.value)}
+          placeholder="Generate summary to copy into email, WhatsApp, or team updates."
+          rows={12}
+        />
       </section>
     </div>
   )
