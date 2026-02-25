@@ -103,7 +103,69 @@ const localSeedIdeas = [
     dueDate: '',
     metrics: { impact: 3, revenue: 3, urgency: 2, confidence: 3, effort: 3 },
   },
+  {
+    id: crypto.randomUUID(),
+    title: 'Client Intake Bot for Tax/Accounting Firms',
+    notes:
+      'Automated intake across web/voice/chat. Creates client record, uploads docs, validates completeness.',
+    column: 'Do Now',
+    votes: 0,
+    owner: '',
+    dueDate: '',
+    metrics: { impact: 5, revenue: 4, urgency: 4, confidence: 4, effort: 4 },
+  },
+  {
+    id: crypto.randomUUID(),
+    title: 'Appointment Reminder + No-Show Reduction Agent',
+    notes:
+      'Automated SMS/email reminders, confirmations, rescheduling, and calendar updates.',
+    column: 'Do Now',
+    votes: 0,
+    owner: '',
+    dueDate: '',
+    metrics: { impact: 4, revenue: 4, urgency: 4, confidence: 4, effort: 4 },
+  },
+  {
+    id: crypto.randomUUID(),
+    title: 'Client Status Update Agent',
+    notes:
+      'Clients ask for return status; AI checks GoFileRoom/UltraTax and replies with current stage + next steps.',
+    column: 'Do Next',
+    votes: 0,
+    owner: '',
+    dueDate: '',
+    metrics: { impact: 4, revenue: 3, urgency: 3, confidence: 3, effort: 4 },
+  },
+  {
+    id: crypto.randomUUID(),
+    title: 'Deadline & Compliance Monitoring Agent',
+    notes:
+      'Monitors deadlines, missing docs, overdue tasks; triggers alerts to staff and clients.',
+    column: 'Do Next',
+    votes: 0,
+    owner: '',
+    dueDate: '',
+    metrics: { impact: 4, revenue: 3, urgency: 3, confidence: 3, effort: 4 },
+  },
+  {
+    id: crypto.randomUUID(),
+    title: 'Internal Firm Knowledge Base Agent',
+    notes: 'AI trained on SOPs, policies, and tax workflows for staff self-service support.',
+    column: 'Later',
+    votes: 0,
+    owner: '',
+    dueDate: '',
+    metrics: { impact: 2, revenue: 2, urgency: 2, confidence: 2, effort: 4 },
+  },
 ]
+
+function mergeSeedIdeas(existingIdeas) {
+  const existingTitles = new Set(existingIdeas.map((idea) => idea.title.trim().toLowerCase()))
+  const missingSeeds = localSeedIdeas.filter(
+    (idea) => !existingTitles.has(idea.title.trim().toLowerCase()),
+  )
+  return [...missingSeeds, ...existingIdeas]
+}
 
 function rowToIdea(row) {
   return {
@@ -155,7 +217,13 @@ function priorityScore(idea) {
 function App() {
   const [ideas, setIdeas] = useState(() => {
     const raw = localStorage.getItem('priority-whiteboard-ideas')
-    return raw ? JSON.parse(raw) : localSeedIdeas
+    if (!raw) return localSeedIdeas
+
+    try {
+      return mergeSeedIdeas(JSON.parse(raw))
+    } catch {
+      return localSeedIdeas
+    }
   })
   const [status, setStatus] = useState(hasSupabase ? 'Connecting to realtime…' : 'Local mode')
 
