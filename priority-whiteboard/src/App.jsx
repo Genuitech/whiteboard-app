@@ -21,6 +21,34 @@ const TEAM_MEMBERS = [
 ]
 
 const ASSIGNMENT_WEBHOOK = import.meta.env.VITE_ASSIGNMENT_WEBHOOK_URL || ''
+const MAX_LOCKED_DO_NOW = 3
+
+const TASK_TEMPLATES = [
+  {
+    name: 'Client onboarding',
+    title: 'Client onboarding workflow setup',
+    notes: 'Set up onboarding pipeline, intake docs, and kickoff communication.',
+    column: 'Do Next',
+    metrics: { impact: 4, revenue: 4, urgency: 4, confidence: 4, effort: 3 },
+    subtasks: ['Kickoff call completed', 'Intake documents requested', 'CRM record created'],
+  },
+  {
+    name: 'Tax strategy engagement',
+    title: 'Tax strategy engagement launch',
+    notes: 'Create strategy review plan and assign implementation actions.',
+    column: 'Do Next',
+    metrics: { impact: 5, revenue: 5, urgency: 4, confidence: 4, effort: 3 },
+    subtasks: ['Financials collected', 'Strategy options drafted', 'Client review meeting booked'],
+  },
+  {
+    name: 'App MVP build',
+    title: 'App MVP sprint kickoff',
+    notes: 'Define MVP scope, assign build owner, and launch first sprint tasks.',
+    column: 'Do Next',
+    metrics: { impact: 5, revenue: 4, urgency: 4, confidence: 4, effort: 4 },
+    subtasks: ['MVP scope approved', 'Technical owner assigned', 'Sprint backlog prepared'],
+  },
+]
 
 const localSeedIdeas = [
   {
@@ -291,6 +319,17 @@ function App() {
     }
   })
   const [summaryText, setSummaryText] = useState('')
+  const [lockedDoNowIds, setLockedDoNowIds] = useState(() => {
+    const raw = localStorage.getItem('priority-whiteboard-locked-donow')
+    if (!raw) return []
+
+    try {
+      return JSON.parse(raw)
+    } catch {
+      return []
+    }
+  })
+  const [selectedTemplate, setSelectedTemplate] = useState(TASK_TEMPLATES[0].name)
 
   useEffect(() => {
     if (!hasSupabase) {
@@ -339,6 +378,10 @@ function App() {
     localStorage.setItem('priority-whiteboard-taskmeta', JSON.stringify(taskMeta))
   }, [taskMeta])
 
+  useEffect(() => {
+    localStorage.setItem('priority-whiteboard-locked-donow', JSON.stringify(lockedDoNowIds))
+  }, [lockedDoNowIds])
+
   const groupedIdeas = useMemo(() => {
     const grouped = Object.fromEntries(COLUMNS.map((column) => [column, []]))
     ideas
@@ -353,6 +396,11 @@ function App() {
     () => ideas.filter((idea) => idea.owner === myTasksFor).sort((a, b) => priorityScore(b) - priorityScore(a)),
     [ideas, myTasksFor],
   )
+
+  useEffect(() => {
+    const doNowIds = new Set(ideas.filter((idea) => idea.column === 'Do Now').map((idea) => idea.id))
+    setLockedDoNowIds((prev) => prev.filter((id) => doNowIds.has(id)))
+  }, [ideas])
 
   async function notifyAssignment(idea, assigneeName) {
     if (!ASSIGNMENT_WEBHOOK || !assigneeName || assigneeName === 'Unassigned') return
@@ -400,6 +448,38 @@ function App() {
     })
   }
 
+  async function addTemplateIdea() {
+    const template = TASK_TEMPLATES.find((item) => item.name === selectedTemplate)
+    if (!template) return
+
+    const idea = {
+      id: crypto.randomUUID(),
+      title: template.title,
+      notes: template.notes,
+      column: template.column,
+      votes: 0,
+      owner: '',
+      dueDate: '',
+      metrics: template.metrics,
+    }
+
+    if (hasSupabase) {
+      const { error } = await supabase.from('ideas').insert(ideaToRow(idea))
+      if (error) return setStatus(`Template insert failed: ${error.message}`)
+    } else {
+      setIdeas((prev) => [idea, ...prev])
+    }
+
+    setTaskMeta((prev) => ({
+      ...prev,
+      [idea.id]: {
+        blocked: false,
+        dependencies: '',
+        subtasks: template.subtasks.map((text) => ({ id: crypto.randomUUID(), text, done: false })),
+      },
+    }))
+  }
+
   async function updateIdea(id, updateFn) {
     const current = ideas.find((idea) => idea.id === id)
     if (!current) return
@@ -436,14 +516,69 @@ function App() {
     })
   }
 
+  function isReadyForDoNow(idea) {
+    const meta = getTaskMeta(idea.id)
+    return Boolean((idea.owner || '').trim()) && Boolean((idea.dueDate || '').trim()) && meta.subtasks.length > 0
+  }
+
+  function validateMoveToDoNow(idea) {
+    if (!isReadyForDoNow(idea)) {
+      setStatus('Ready gate: assign owner, due date, and at least 1 checklist item before Do Now')
+      return false
+    }
+    return true
+  }
+
   function onDropColumn(column) {
     if (!draggedId) return
+    const current = ideas.find((idea) => idea.id === draggedId)
+    if (!current) return
+
+    if (column === 'Do Now' && !validateMoveToDoNow(current)) {
+      setDraggedId(null)
+      return
+    }
+
+    if (lockedDoNowIds.includes(draggedId) && column !== 'Do Now') {
+      setStatus('Locked sprint task: unlock it first to move it out of Do Now')
+      setDraggedId(null)
+      return
+    }
+
     updateIdea(draggedId, (idea) => ({ ...idea, column }))
     setDraggedId(null)
   }
 
   function promoteToTask(id) {
+    const current = ideas.find((idea) => idea.id === id)
+    if (!current || !validateMoveToDoNow(current)) return
     updateIdea(id, (idea) => ({ ...idea, column: 'Do Now' }))
+  }
+
+  function toggleLockDoNow(id) {
+    const idea = ideas.find((item) => item.id === id)
+    if (!idea || idea.column !== 'Do Now') return
+
+    const isLocked = lockedDoNowIds.includes(id)
+    if (isLocked) {
+      setLockedDoNowIds((prev) => prev.filter((lockedId) => lockedId !== id))
+      return
+    }
+
+    if (lockedDoNowIds.length >= MAX_LOCKED_DO_NOW) {
+      setStatus(`Weekly sprint lock limit reached (${MAX_LOCKED_DO_NOW})`)
+      return
+    }
+
+    setLockedDoNowIds((prev) => [...prev, id])
+  }
+
+  function markComplete(id) {
+    if (lockedDoNowIds.includes(id)) {
+      setStatus('Locked sprint task: unlock it first before marking complete')
+      return
+    }
+    updateIdea(id, (idea) => ({ ...idea, column: 'Done' }))
   }
 
   function startEditing(idea) {
@@ -458,6 +593,18 @@ function App() {
 
   async function saveEditing(id) {
     if (!editDraft.title.trim()) return
+    const current = ideas.find((idea) => idea.id === id)
+    if (!current) return
+
+    if (editDraft.column === 'Do Now' && current.column !== 'Do Now' && !validateMoveToDoNow(current)) {
+      return
+    }
+
+    if (lockedDoNowIds.includes(id) && editDraft.column !== 'Do Now') {
+      setStatus('Locked sprint task: unlock it first to move it out of Do Now')
+      return
+    }
+
     await updateIdea(id, (idea) => ({
       ...idea,
       title: editDraft.title.trim(),
@@ -549,6 +696,7 @@ function App() {
             ))}
           </select>
         </label>
+        <p className="status">Sprint lock: {lockedDoNowIds.length}/{MAX_LOCKED_DO_NOW} Do Now tasks locked</p>
       </section>
 
       <section className="composer">
@@ -595,6 +743,17 @@ function App() {
 
           <button type="submit">Add idea</button>
         </form>
+
+        <div className="template-row">
+          <select value={selectedTemplate} onChange={(e) => setSelectedTemplate(e.target.value)}>
+            {TASK_TEMPLATES.map((template) => (
+              <option key={template.name} value={template.name}>
+                Template: {template.name}
+              </option>
+            ))}
+          </select>
+          <button onClick={addTemplateIdea}>Add from template</button>
+        </div>
       </section>
 
       <main className="board">
@@ -652,6 +811,9 @@ function App() {
 
                   <p className="score">Score: {priorityScore(idea).toFixed(2)}</p>
                   <p className="assignee">Assigned: {idea.owner || 'Unassigned'}</p>
+                  <p className={isReadyForDoNow(idea) ? 'ready ready-yes' : 'ready ready-no'}>
+                    {isReadyForDoNow(idea) ? 'Ready for Do Now' : 'Not Ready for Do Now'}
+                  </p>
                   {meta.blocked && <p className="blocked">Blocked</p>}
                   {meta.dependencies && <p className="deps">Depends on: {meta.dependencies}</p>}
 
@@ -666,9 +828,12 @@ function App() {
                     ) : (
                       <>
                         <button onClick={() => promoteToTask(idea.id)}>Promote to Do Now</button>
-                        <button onClick={() => updateIdea(idea.id, (i) => ({ ...i, column: 'Done' }))}>
-                          Mark complete
-                        </button>
+                        {idea.column === 'Do Now' && (
+                          <button className="secondary" onClick={() => toggleLockDoNow(idea.id)}>
+                            {lockedDoNowIds.includes(idea.id) ? 'Unlock sprint' : 'Lock sprint'}
+                          </button>
+                        )}
+                        <button onClick={() => markComplete(idea.id)}>Mark complete</button>
                         <button className="secondary" onClick={() => startEditing(idea)}>
                           Edit
                         </button>

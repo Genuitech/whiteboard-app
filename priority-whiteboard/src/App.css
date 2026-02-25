@@ -36,6 +36,18 @@ header p {
   align-items: center;
 }
 
+.template-row {
+  margin-top: 0.65rem;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.5rem;
+}
+
+.template-row button {
+  width: auto;
+  white-space: nowrap;
+}
+
 label {
   display: grid;
   gap: 0.1rem;
@@ -121,6 +133,19 @@ button.danger {
 .assignee {
   color: #175cd3;
   font-size: 0.85rem;
+}
+
+.ready {
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.ready-yes {
+  color: #067647;
+}
+
+.ready-no {
+  color: #b54708;
 }
 
 .meta {
