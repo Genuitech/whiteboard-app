@@ -70,8 +70,26 @@ async function finish(){
  const url=new URL('https://calendly.com/cromine-rhw/30-min-zoom');
  if(ans.name) url.searchParams.set('name', ans.name);
  if(ans.email) url.searchParams.set('email', ans.email);
- // Calendly prefill for first custom question (a1). Configure Event Type question #1 as "Intake Notes".
+
+ const ib=ans.income_breakdown||{};
+ const annual=ans.annual_income||'';
+ const profile=ans.profile||'';
+ const entity=ans.entity||'';
+ const goal=ans.goal||'';
+ const timing=ans.timing||'';
+
+ // Calendly custom question mapping:
+ // a1 = full intake notes
+ // a2 = annual income
+ // a3 = profile
+ // a4 = income breakdown
+ // a5 = entity + goal + timing summary
  url.searchParams.set('a1', notes);
+ url.searchParams.set('a2', `Annual income: ${annual}`);
+ url.searchParams.set('a3', `Profile: ${profile}`);
+ url.searchParams.set('a4', `Breakdown -> W-2: ${ib.w2||0}; Capital gains: ${ib.capital_gains||0}; Business: ${ib.business||0}; Retirement: ${ib.retirement||0}; Other: ${ib.other||0}`);
+ url.searchParams.set('a5', `Entity: ${entity}; Goal: ${goal}; Timing: ${timing}`);
+
  document.getElementById('bookLink').href=url.toString();
 
  document.getElementById('done').classList.remove('hidden');
