@@ -51,6 +51,47 @@ app.post('/api/create-checkout-session', async (req, res) => {
   }
 });
 
+app.post('/api/consult-request', async (req, res) => {
+  try {
+    const { name, email, notes, page } = req.body || {};
+
+    if (!name || !email || !notes) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    const webhookUrl = process.env.CONSULT_WEBHOOK_URL;
+    if (!webhookUrl) {
+      console.warn('CONSULT_WEBHOOK_URL not set; logging lead locally only');
+      console.log('📩 Consult lead:', { name, email, notes, page });
+      return res.json({ ok: true, queued: false });
+    }
+
+    const payload = {
+      name,
+      email,
+      notes,
+      page: page || 'unknown',
+      source: 'RHW Website Consultation Form',
+      submittedAt: new Date().toISOString()
+    };
+
+    const webhookRes = await fetch(webhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (!webhookRes.ok) {
+      const text = await webhookRes.text();
+      return res.status(502).json({ error: `Webhook failed: ${text || webhookRes.status}` });
+    }
+
+    return res.json({ ok: true, queued: true });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
 app.post('/webhook/stripe', (req, res) => {
   const sig = req.headers['stripe-signature'];
 
