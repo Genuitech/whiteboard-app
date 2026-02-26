@@ -1,0 +1,55 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RHW Advisory Store</title>
+    <style>
+      body { font-family: Arial, sans-serif; max-width: 900px; margin: 40px auto; padding: 0 16px; }
+      .card { border: 1px solid #ddd; border-radius: 10px; padding: 16px; margin-bottom: 14px; }
+      button { background: #0a66ff; color: #fff; border: none; padding: 10px 14px; border-radius: 8px; cursor: pointer; }
+    </style>
+  </head>
+  <body>
+    <h1>RHW Advisory Digital Store</h1>
+    <p>Original, derivative-safe advisory tools for modern tax/accounting firms.</p>
+
+    <div class="card">
+      <h3>Advisory Pricing Engine Kit — $497</h3>
+      <p>Price confidently, protect margins, and scope consistently.</p>
+      <button onclick="buy('pricing_engine')">Buy Now</button>
+    </div>
+
+    <div class="card">
+      <h3>1040 Strategy Session Kit — $297</h3>
+      <p>Run repeatable high-value strategy sessions for individual clients.</p>
+      <button onclick="buy('strategy_1040')">Buy Now</button>
+    </div>
+
+    <div class="card">
+      <h3>Entity Decision Playbook — $397</h3>
+      <p>Guide LLC vs S-Corp decisions with a clear implementation workflow.</p>
+      <button onclick="buy('entity_playbook')">Buy Now</button>
+    </div>
+
+    <div class="card">
+      <h3>RHW Advisory Launch Bundle — $997</h3>
+      <p>All 3 kits + launch bonuses.</p>
+      <button onclick="buy('bundle')">Buy Bundle</button>
+    </div>
+
+    <script>
+      async function buy(productKey) {
+        const res = await fetch('/api/create-checkout-session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ productKey })
+        });
+
+        const data = await res.json();
+        if (data.url) window.location.href = data.url;
+        else alert(data.error || 'Unable to start checkout');
+      }
+    </script>
+  </body>
+</html>
