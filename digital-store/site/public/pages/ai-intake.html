@@ -20,13 +20,24 @@ function renderQ(){
   box.innerHTML=it.opts.map(o=>`<button class='btn secondary' style='margin-right:8px;margin-bottom:8px' onclick='pick(${JSON.stringify(o)})'>${o}</button>`).join('');
  }else if(it.type==='income_breakdown'){
   box.innerHTML=`
-    <input id='w2' type='text' placeholder='W-2 income (USD)' style='width:100%;margin-bottom:8px' />
-    <input id='cap' type='text' placeholder='Capital gains income (USD)' style='width:100%;margin-bottom:8px' />
-    <input id='biz' type='text' placeholder='Business income (USD)' style='width:100%;margin-bottom:8px' />
-    <input id='ret' type='text' placeholder='Retirement income (USD)' style='width:100%;margin-bottom:8px' />
-    <input id='oth' type='text' placeholder='Other income (USD)' style='width:100%;margin-bottom:8px' />
+    <input id='w2' type='number' step='0.01' placeholder='W-2 income (USD)' style='width:100%;margin-bottom:8px' />
+    <input id='cap' type='number' step='0.01' placeholder='Capital gains income (USD)' style='width:100%;margin-bottom:8px' />
+    <input id='biz' type='number' step='0.01' placeholder='Business income (USD)' style='width:100%;margin-bottom:8px' />
+    <input id='ret' type='number' step='0.01' placeholder='Retirement income (USD)' style='width:100%;margin-bottom:8px' />
+    <input id='oth' type='number' step='0.01' placeholder='Other income (auto-calculated)' style='width:100%;margin-bottom:8px;background:#0b0f1a;color:#9ca3af' readonly />
     <button class='btn primary' onclick='pick({w2:document.getElementById("w2").value,capital_gains:document.getElementById("cap").value,business:document.getElementById("biz").value,retirement:document.getElementById("ret").value,other:document.getElementById("oth").value})'>Continue</button>
   `;
+  const annual=parseFloat(String(ans.annual_income||'').replace(/,/g,''))||0;
+  const calcOther=()=>{
+    const w2=parseFloat(document.getElementById('w2').value)||0;
+    const cap=parseFloat(document.getElementById('cap').value)||0;
+    const biz=parseFloat(document.getElementById('biz').value)||0;
+    const ret=parseFloat(document.getElementById('ret').value)||0;
+    const other=annual-(w2+cap+biz+ret);
+    document.getElementById('oth').value=Number.isFinite(other)?other.toFixed(2):'';
+  };
+  ['w2','cap','biz','ret'].forEach(id=>document.getElementById(id).addEventListener('input',calcOther));
+  calcOther();
  }else{
   box.innerHTML=`<input id='txt' type='${it.type}' style='width:100%;margin-bottom:8px'/> <button class='btn primary' onclick='pick(document.getElementById("txt").value)'>Continue</button>`;
  }
