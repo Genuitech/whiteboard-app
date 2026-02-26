@@ -1,0 +1,37 @@
+<!doctype html><html><head><meta charset='UTF-8'/><meta name='viewport' content='width=device-width, initial-scale=1.0'/><title>AI Strategy Intake - RHW</title><link rel='stylesheet' href='/styles.css'/><style>.chat{max-width:760px}.bubble{background:#17181b;border:1px solid #2a2b2f;border-radius:12px;padding:14px;margin:10px 0}.q{color:#f1da8a;font-weight:700}.a{margin-top:8px}.hidden{display:none}</style></head><body><nav class='nav'><div class='inner'><a class='brand' href='/index.html'>RHW Advisory</a><div class='links'><a href='/pages/products.html'>Products</a><a href='/pages/checklist-preview.html'>Checklist Preview</a></div></div></nav><div class='wrap chat'><h1>AI Strategy Intake</h1><p class='sub'>Before booking with a CPA, complete this 3-minute AI-guided intake so we can focus your consultation on the highest-impact opportunities.</p><div id='flow'></div><div id='nextBox' class='bubble'><div class='q' id='qText'></div><div class='a' id='inputBox'></div></div><div id='done' class='hidden'><div class='note'><b>Great — intake complete.</b><br/>Your responses were captured and routed for review. Next step: book your CPA strategy consultation.</div><div class='row'><a class='btn primary' id='bookLink' href='https://calendly.com/cromine-rhw/30-min-zoom' target='_blank' rel='noopener'>Book CPA Consultation</a><a class='btn secondary' href='/pages/products.html'>Back to Products</a></div></div></div><script>
+const questions=[
+ {k:'name',q:'What is your full name?',type:'text'},
+ {k:'email',q:'What is your best email?',type:'email'},
+ {k:'income',q:'Is your annual income currently above $300K?',type:'choice',opts:['Yes','No']},
+ {k:'profile',q:'Which best describes you?',type:'choice',opts:['Business owner','High-income W-2','Both']},
+ {k:'entity',q:'Current entity structure (if business owner)?',type:'choice',opts:['Sole Prop','LLC','S-Corp','C-Corp','N/A']},
+ {k:'goal',q:'What is your top tax planning goal right now?',type:'text'},
+ {k:'timing',q:'When do you want to implement your plan?',type:'choice',opts:['Immediately','Within 30 days','This quarter','Just exploring']}
+];
+let i=0; const ans={}; const flow=document.getElementById('flow');
+function escapeHtml(s){return (s||'').replace(/[&<>\"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[m]))}
+function renderQ(){
+ if(i>=questions.length){finish();return}
+ const it=questions[i];
+ document.getElementById('qText').textContent=it.q;
+ const box=document.getElementById('inputBox');
+ if(it.type==='choice'){
+  box.innerHTML=it.opts.map(o=>`<button class='btn secondary' style='margin-right:8px;margin-bottom:8px' onclick='pick(${JSON.stringify(o)})'>${o}</button>`).join('');
+ }else{
+  box.innerHTML=`<input id='txt' type='${it.type}' style='width:100%;margin-bottom:8px'/> <button class='btn primary' onclick='pick(document.getElementById("txt").value)'>Continue</button>`;
+ }
+}
+function pick(v){
+ const it=questions[i]; if(!v){alert('Please enter/select a response');return}
+ ans[it.k]=v;
+ const b=document.createElement('div'); b.className='bubble'; b.innerHTML=`<div class='q'>${escapeHtml(it.q)}</div><div>${escapeHtml(String(v))}</div>`; flow.appendChild(b);
+ i++; renderQ();
+}
+async function finish(){
+ document.getElementById('nextBox').classList.add('hidden');
+ const notes=`AI Intake Responses:\n`+Object.entries(ans).map(([k,v])=>`- ${k}: ${v}`).join('\n');
+ try{await fetch('/api/consult-request',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:ans.name||'Unknown',email:ans.email||'unknown@example.com',notes,page:'/pages/ai-intake.html'})});}catch(e){}
+ document.getElementById('done').classList.remove('hidden');
+}
+renderQ();
+</script></body></html>
