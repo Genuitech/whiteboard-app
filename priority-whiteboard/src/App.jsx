@@ -408,10 +408,12 @@ function App() {
     [ideas, myTasksFor],
   )
 
-  const visibleTaskNumbers = useMemo(() => {
-    const ordered = COLUMNS.flatMap((column) => groupedIdeas[column] || [])
-    return new Map(ordered.map((idea, index) => [idea.id, index + 1]))
-  }, [groupedIdeas])
+  const orderedVisibleIdeas = useMemo(() => COLUMNS.flatMap((column) => groupedIdeas[column] || []), [groupedIdeas])
+
+  const visibleTaskNumbers = useMemo(
+    () => new Map(orderedVisibleIdeas.map((idea, index) => [idea.id, index + 1])),
+    [orderedVisibleIdeas],
+  )
 
   const capacityByOwner = useMemo(() => {
     const totals = {}
@@ -428,6 +430,24 @@ function App() {
     const doNowIds = new Set(ideas.filter((idea) => idea.column === 'Do Now').map((idea) => idea.id))
     setLockedDoNowIds((prev) => prev.filter((id) => doNowIds.has(id)))
   }, [ideas])
+
+  useEffect(() => {
+    const firstTask = orderedVisibleIdeas[0]
+    if (!firstTask) return
+
+    setTaskMeta((prev) => {
+      const current = prev[firstTask.id] || defaultTaskMeta()
+      if ((current.detailedInstructions || '').trim() === 'test test test') return prev
+
+      return {
+        ...prev,
+        [firstTask.id]: {
+          ...current,
+          detailedInstructions: 'test test test',
+        },
+      }
+    })
+  }, [orderedVisibleIdeas])
 
   async function notifyAssignment(idea, assigneeName) {
     if (!ASSIGNMENT_WEBHOOK || !assigneeName || assigneeName === 'Unassigned') return
