@@ -408,6 +408,11 @@ function App() {
     [ideas, myTasksFor],
   )
 
+  const visibleTaskNumbers = useMemo(() => {
+    const ordered = COLUMNS.flatMap((column) => groupedIdeas[column] || [])
+    return new Map(ordered.map((idea, index) => [idea.id, index + 1]))
+  }, [groupedIdeas])
+
   const capacityByOwner = useMemo(() => {
     const totals = {}
     ideas
@@ -749,7 +754,7 @@ function App() {
             onDrop={() => onDropColumn(column)}
           >
             <h2>{column}</h2>
-            {groupedIdeas[column].map((idea, taskIndex) => {
+            {groupedIdeas[column].map((idea) => {
               const isEditing = editingIdeaId === idea.id
               const isSelectedTask = selectedTaskId === idea.id
 
@@ -791,7 +796,7 @@ function App() {
                   ) : (
                     <>
                       <h3>
-                        {column}.{taskIndex + 1} — {idea.title}
+                        {visibleTaskNumbers.get(idea.id)} — {idea.title}
                       </h3>
                       {idea.notes && <p>{idea.notes}</p>}
                     </>
