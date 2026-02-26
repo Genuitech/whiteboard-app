@@ -66,6 +66,14 @@ async function finish(){
    return `- ${k}: ${v}`;
  }).join('\n');
  try{await fetch('/api/consult-request',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:ans.name||'Unknown',email:ans.email||'unknown@example.com',notes,page:'/pages/ai-intake.html'})});}catch(e){}
+
+ const url=new URL('https://calendly.com/cromine-rhw/30-min-zoom');
+ if(ans.name) url.searchParams.set('name', ans.name);
+ if(ans.email) url.searchParams.set('email', ans.email);
+ // Calendly prefill for first custom question (a1). Configure Event Type question #1 as "Intake Notes".
+ url.searchParams.set('a1', notes);
+ document.getElementById('bookLink').href=url.toString();
+
  document.getElementById('done').classList.remove('hidden');
 }
 renderQ();
