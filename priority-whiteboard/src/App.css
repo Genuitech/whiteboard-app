@@ -119,6 +119,12 @@ button.danger {
   border-radius: 8px;
   padding: 0.55rem;
   margin-bottom: 0.6rem;
+  cursor: pointer;
+}
+
+.card-selected {
+  border-color: #175cd3;
+  box-shadow: 0 0 0 2px rgba(23, 92, 211, 0.12);
 }
 
 .card h3 {
@@ -256,6 +262,17 @@ button.danger {
   align-self: end;
   font-size: 0.82rem;
   color: #344054;
+  font-weight: 600;
+}
+
+.task-detail {
+  margin-top: 0.5rem;
+  border-top: 1px solid #eaecf0;
+  padding-top: 0.45rem;
+}
+
+.task-detail p {
+  font-size: 0.8rem;
   font-weight: 600;
 }
 

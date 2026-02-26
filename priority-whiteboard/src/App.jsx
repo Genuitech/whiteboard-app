@@ -288,6 +288,7 @@ function defaultTaskMeta() {
     clientName: '',
     valuePropAmount: '',
     chargeAmount: '',
+    detailedInstructions: '',
     activity: [],
   }
 }
@@ -316,6 +317,7 @@ function App() {
   const [myTasksFor, setMyTasksFor] = useState('Chea')
   const [editingIdeaId, setEditingIdeaId] = useState(null)
   const [editDraft, setEditDraft] = useState({ title: '', notes: '', column: 'Do Next' })
+  const [selectedTaskId, setSelectedTaskId] = useState(null)
   const [taskMeta, setTaskMeta] = useState(() => {
     const raw = localStorage.getItem('priority-whiteboard-taskmeta')
     if (!raw) return {}
@@ -719,6 +721,7 @@ function App() {
       <header>
         <h1>Priority Whiteboard</h1>
         <p>Capture ideas, prioritize execution, and move work to done.</p>
+        <p>Click any task card to open detailed instructions.</p>
         <p className="status">Mode: {status}</p>
       </header>
 
@@ -746,8 +749,9 @@ function App() {
             onDrop={() => onDropColumn(column)}
           >
             <h2>{column}</h2>
-            {groupedIdeas[column].map((idea) => {
+            {groupedIdeas[column].map((idea, taskIndex) => {
               const isEditing = editingIdeaId === idea.id
+              const isSelectedTask = selectedTaskId === idea.id
 
               const meta = getTaskMeta(idea.id)
               const completedSubtasks = meta.subtasks.filter((task) => task.done).length
@@ -755,9 +759,10 @@ function App() {
               return (
                 <article
                   key={idea.id}
-                  className="card"
+                  className={`card ${isSelectedTask ? 'card-selected' : ''}`}
                   draggable={!isEditing}
                   onDragStart={() => setDraggedId(idea.id)}
+                  onClick={() => setSelectedTaskId((prev) => (prev === idea.id ? null : idea.id))}
                 >
                   {isEditing ? (
                     <>
@@ -785,7 +790,9 @@ function App() {
                     </>
                   ) : (
                     <>
-                      <h3>{idea.title}</h3>
+                      <h3>
+                        {column}.{taskIndex + 1} — {idea.title}
+                      </h3>
                       {idea.notes && <p>{idea.notes}</p>}
                     </>
                   )}
@@ -797,7 +804,7 @@ function App() {
                   {meta.blocked && <p className="blocked">Blocked</p>}
                   {meta.dependencies && <p className="deps">Software needed: {meta.dependencies}</p>}
 
-                  <div className="meta">
+                  <div className="meta" onClick={(e) => e.stopPropagation()}>
                     {isEditing ? (
                       <>
                         <button onClick={() => saveEditing(idea.id)}>Save</button>
@@ -824,7 +831,7 @@ function App() {
                     )}
                   </div>
 
-                  <div className="task-fields">
+                  <div className="task-fields" onClick={(e) => e.stopPropagation()}>
                     <select
                       value={idea.owner || 'Unassigned'}
                       onChange={(e) =>
@@ -847,7 +854,7 @@ function App() {
                     />
                   </div>
 
-                  <div className="task-fields task-fields-3">
+                  <div className="task-fields task-fields-3" onClick={(e) => e.stopPropagation()}>
                     <input
                       value={meta.clientName}
                       onChange={(e) =>
@@ -877,7 +884,7 @@ function App() {
                     />
                   </div>
 
-                  <div className="task-fields">
+                  <div className="task-fields" onClick={(e) => e.stopPropagation()}>
                     <label>
                       <input
                         type="checkbox"
@@ -908,7 +915,7 @@ function App() {
                     />
                   </div>
 
-                  <div className="task-fields">
+                  <div className="task-fields" onClick={(e) => e.stopPropagation()}>
                     <label>
                       Est. hours
                       <input
@@ -926,7 +933,7 @@ function App() {
                     </label>
                   </div>
 
-                  <div className="checklist">
+                  <div className="checklist" onClick={(e) => e.stopPropagation()}>
                     <p>
                       Checklist ({completedSubtasks}/{meta.subtasks.length})
                     </p>
@@ -983,7 +990,28 @@ function App() {
                     </div>
                   </div>
 
-                  <div className="activity-log">
+                  {isSelectedTask && (
+                    <div className="task-detail" onClick={(e) => e.stopPropagation()}>
+                      <p>Detailed instructions</p>
+                      <textarea
+                        value={meta.detailedInstructions}
+                        onChange={(e) =>
+                          updateTaskMeta(idea.id, (current) => ({ ...current, detailedInstructions: e.target.value }))
+                        }
+                        onBlur={(e) =>
+                          updateTaskMeta(
+                            idea.id,
+                            (current) => ({ ...current, detailedInstructions: e.target.value }),
+                            'Updated detailed instructions',
+                          )
+                        }
+                        placeholder="Click task, then write detailed requirements here."
+                        rows={4}
+                      />
+                    </div>
+                  )}
+
+                  <div className="activity-log" onClick={(e) => e.stopPropagation()}>
                     <p>Recent activity</p>
                     <ul>
                       {(meta.activity || []).slice(0, 5).map((entry) => (
