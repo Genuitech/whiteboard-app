@@ -431,23 +431,6 @@ function App() {
     setLockedDoNowIds((prev) => prev.filter((id) => doNowIds.has(id)))
   }, [ideas])
 
-  useEffect(() => {
-    const firstTask = orderedVisibleIdeas[0]
-    if (!firstTask) return
-
-    setTaskMeta((prev) => {
-      const current = prev[firstTask.id] || defaultTaskMeta()
-      if ((current.detailedInstructions || '').trim() === 'test test test') return prev
-
-      return {
-        ...prev,
-        [firstTask.id]: {
-          ...current,
-          detailedInstructions: 'test test test',
-        },
-      }
-    })
-  }, [orderedVisibleIdeas])
 
   async function notifyAssignment(idea, assigneeName) {
     if (!ASSIGNMENT_WEBHOOK || !assigneeName || assigneeName === 'Unassigned') return
@@ -780,6 +763,7 @@ function App() {
 
               const meta = getTaskMeta(idea.id)
               const completedSubtasks = meta.subtasks.filter((task) => task.done).length
+              const notesPreview = (idea.notes || '').trim()
 
               return (
                 <article
@@ -818,7 +802,7 @@ function App() {
                       <h3>
                         {visibleTaskNumbers.get(idea.id)} — {idea.title}
                       </h3>
-                      {idea.notes && <p>{idea.notes}</p>}
+                      {notesPreview && <p className="notes-preview">{notesPreview}</p>}
                     </>
                   )}
 
@@ -826,8 +810,11 @@ function App() {
                   <p className={isReadyForDoNow(idea) ? 'ready ready-yes' : 'ready ready-no'}>
                     {isReadyForDoNow(idea) ? 'Ready for Do Now' : 'Not Ready for Do Now'}
                   </p>
+                  <p className="mini-meta">
+                    Due: {idea.dueDate || 'TBD'} • Checklist: {completedSubtasks}/{meta.subtasks.length}
+                  </p>
                   {meta.blocked && <p className="blocked">Blocked</p>}
-                  {meta.dependencies && <p className="deps">Software needed: {meta.dependencies}</p>}
+                  {isSelectedTask && meta.dependencies && <p className="deps">Software needed: {meta.dependencies}</p>}
 
                   <div className="meta" onClick={(e) => e.stopPropagation()}>
                     {isEditing ? (
@@ -846,6 +833,12 @@ function App() {
                           </button>
                         )}
                         <button onClick={() => markComplete(idea.id)}>Mark complete</button>
+                        <button
+                          className="secondary"
+                          onClick={() => setSelectedTaskId((prev) => (prev === idea.id ? null : idea.id))}
+                        >
+                          {isSelectedTask ? 'Hide details' : 'Open details'}
+                        </button>
                         <button className="secondary" onClick={() => startEditing(idea)}>
                           Edit
                         </button>
@@ -856,197 +849,199 @@ function App() {
                     )}
                   </div>
 
-                  <div className="task-fields" onClick={(e) => e.stopPropagation()}>
-                    <select
-                      value={idea.owner || 'Unassigned'}
-                      onChange={(e) =>
-                        updateIdea(idea.id, (i) => ({
-                          ...i,
-                          owner: e.target.value === 'Unassigned' ? '' : e.target.value,
-                        }))
-                      }
-                    >
-                      {TEAM_MEMBERS.map((member) => (
-                        <option key={member.name} value={member.name}>
-                          {member.email ? `${member.name} (${member.email})` : member.name}
-                        </option>
-                      ))}
-                    </select>
-                    <input
-                      type="date"
-                      value={idea.dueDate}
-                      onChange={(e) => updateIdea(idea.id, (i) => ({ ...i, dueDate: e.target.value }))}
-                    />
-                  </div>
+                  {isSelectedTask && (
+                    <>
+                      <div className="task-fields" onClick={(e) => e.stopPropagation()}>
+                        <select
+                          value={idea.owner || 'Unassigned'}
+                          onChange={(e) =>
+                            updateIdea(idea.id, (i) => ({
+                              ...i,
+                              owner: e.target.value === 'Unassigned' ? '' : e.target.value,
+                            }))
+                          }
+                        >
+                          {TEAM_MEMBERS.map((member) => (
+                            <option key={member.name} value={member.name}>
+                              {member.email ? `${member.name} (${member.email})` : member.name}
+                            </option>
+                          ))}
+                        </select>
+                        <input
+                          type="date"
+                          value={idea.dueDate}
+                          onChange={(e) => updateIdea(idea.id, (i) => ({ ...i, dueDate: e.target.value }))}
+                        />
+                      </div>
 
-                  <div className="task-fields task-fields-3" onClick={(e) => e.stopPropagation()}>
-                    <input
-                      value={meta.clientName}
-                      onChange={(e) =>
-                        updateTaskMeta(idea.id, (current) => ({ ...current, clientName: e.target.value }))
-                      }
-                      placeholder="Client name"
-                    />
-                    <input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={meta.valuePropAmount}
-                      onChange={(e) =>
-                        updateTaskMeta(idea.id, (current) => ({ ...current, valuePropAmount: e.target.value }))
-                      }
-                      placeholder="Value prop ($)"
-                    />
-                    <input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={meta.chargeAmount}
-                      onChange={(e) =>
-                        updateTaskMeta(idea.id, (current) => ({ ...current, chargeAmount: e.target.value }))
-                      }
-                      placeholder="Charge amount ($)"
-                    />
-                  </div>
+                      <div className="task-fields task-fields-3" onClick={(e) => e.stopPropagation()}>
+                        <input
+                          value={meta.clientName}
+                          onChange={(e) =>
+                            updateTaskMeta(idea.id, (current) => ({ ...current, clientName: e.target.value }))
+                          }
+                          placeholder="Client name"
+                        />
+                        <input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={meta.valuePropAmount}
+                          onChange={(e) =>
+                            updateTaskMeta(idea.id, (current) => ({ ...current, valuePropAmount: e.target.value }))
+                          }
+                          placeholder="Value prop ($)"
+                        />
+                        <input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={meta.chargeAmount}
+                          onChange={(e) =>
+                            updateTaskMeta(idea.id, (current) => ({ ...current, chargeAmount: e.target.value }))
+                          }
+                          placeholder="Charge amount ($)"
+                        />
+                      </div>
 
-                  <div className="task-fields" onClick={(e) => e.stopPropagation()}>
-                    <label>
-                      <input
-                        type="checkbox"
-                        checked={meta.blocked}
-                        onChange={(e) =>
-                          updateTaskMeta(
-                            idea.id,
-                            (current) => ({ ...current, blocked: e.target.checked }),
-                            e.target.checked ? 'Marked blocked' : 'Marked unblocked',
-                          )
-                        }
-                      />
-                      Blocked
-                    </label>
-                    <input
-                      value={meta.dependencies}
-                      onChange={(e) =>
-                        updateTaskMeta(idea.id, (current) => ({ ...current, dependencies: e.target.value }))
-                      }
-                      onBlur={(e) =>
-                        updateTaskMeta(
-                          idea.id,
-                          (current) => ({ ...current, dependencies: e.target.value }),
-                          `Updated software needed: ${e.target.value || 'None'}`,
-                        )
-                      }
-                      placeholder="Software needed"
-                    />
-                  </div>
-
-                  <div className="task-fields" onClick={(e) => e.stopPropagation()}>
-                    <label>
-                      Est. hours
-                      <input
-                        type="number"
-                        min="0"
-                        step="1"
-                        value={meta.effortHours}
-                        onChange={(e) =>
-                          updateTaskMeta(idea.id, (current) => ({
-                            ...current,
-                            effortHours: Number(e.target.value || 0),
-                          }))
-                        }
-                      />
-                    </label>
-                  </div>
-
-                  <div className="checklist" onClick={(e) => e.stopPropagation()}>
-                    <p>
-                      Checklist ({completedSubtasks}/{meta.subtasks.length})
-                    </p>
-                    {meta.subtasks.map((task) => (
-                      <div key={task.id} className="checklist-item">
+                      <div className="task-fields" onClick={(e) => e.stopPropagation()}>
                         <label>
                           <input
                             type="checkbox"
-                            checked={task.done}
-                            onChange={() =>
+                            checked={meta.blocked}
+                            onChange={(e) =>
                               updateTaskMeta(
                                 idea.id,
-                                (current) => ({
-                                  ...current,
-                                  subtasks: current.subtasks.map((subtask) =>
-                                    subtask.id === task.id ? { ...subtask, done: !subtask.done } : subtask,
-                                  ),
-                                }),
-                                `${task.done ? 'Unchecked' : 'Checked'}: ${task.text}`,
+                                (current) => ({ ...current, blocked: e.target.checked }),
+                                e.target.checked ? 'Marked blocked' : 'Marked unblocked',
                               )
                             }
                           />
-                          <span className={task.done ? 'done' : ''}>{task.text}</span>
+                          Blocked
                         </label>
-                        <button
-                          className="secondary"
-                          onClick={() =>
+                        <input
+                          value={meta.dependencies}
+                          onChange={(e) =>
+                            updateTaskMeta(idea.id, (current) => ({ ...current, dependencies: e.target.value }))
+                          }
+                          onBlur={(e) =>
                             updateTaskMeta(
                               idea.id,
-                              (current) => ({
-                                ...current,
-                                subtasks: current.subtasks.filter((subtask) => subtask.id !== task.id),
-                              }),
-                              `Removed checklist item: ${task.text}`,
+                              (current) => ({ ...current, dependencies: e.target.value }),
+                              `Updated software needed: ${e.target.value || 'None'}`,
                             )
                           }
-                        >
-                          Remove
-                        </button>
+                          placeholder="Software needed"
+                        />
                       </div>
-                    ))}
-                    <div className="checklist-add">
-                      <input
-                        placeholder="Add checklist item"
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            e.preventDefault()
-                            addSubtask(idea.id, e.currentTarget.value)
-                            e.currentTarget.value = ''
+
+                      <div className="task-fields" onClick={(e) => e.stopPropagation()}>
+                        <label>
+                          Est. hours
+                          <input
+                            type="number"
+                            min="0"
+                            step="1"
+                            value={meta.effortHours}
+                            onChange={(e) =>
+                              updateTaskMeta(idea.id, (current) => ({
+                                ...current,
+                                effortHours: Number(e.target.value || 0),
+                              }))
+                            }
+                          />
+                        </label>
+                      </div>
+
+                      <div className="checklist" onClick={(e) => e.stopPropagation()}>
+                        <p>
+                          Checklist ({completedSubtasks}/{meta.subtasks.length})
+                        </p>
+                        {meta.subtasks.map((task) => (
+                          <div key={task.id} className="checklist-item">
+                            <label>
+                              <input
+                                type="checkbox"
+                                checked={task.done}
+                                onChange={() =>
+                                  updateTaskMeta(
+                                    idea.id,
+                                    (current) => ({
+                                      ...current,
+                                      subtasks: current.subtasks.map((subtask) =>
+                                        subtask.id === task.id ? { ...subtask, done: !subtask.done } : subtask,
+                                      ),
+                                    }),
+                                    `${task.done ? 'Unchecked' : 'Checked'}: ${task.text}`,
+                                  )
+                                }
+                              />
+                              <span className={task.done ? 'done' : ''}>{task.text}</span>
+                            </label>
+                            <button
+                              className="secondary"
+                              onClick={() =>
+                                updateTaskMeta(
+                                  idea.id,
+                                  (current) => ({
+                                    ...current,
+                                    subtasks: current.subtasks.filter((subtask) => subtask.id !== task.id),
+                                  }),
+                                  `Removed checklist item: ${task.text}`,
+                                )
+                              }
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        ))}
+                        <div className="checklist-add">
+                          <input
+                            placeholder="Add checklist item"
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault()
+                                addSubtask(idea.id, e.currentTarget.value)
+                                e.currentTarget.value = ''
+                              }
+                            }}
+                          />
+                          <small>Press Enter to add</small>
+                        </div>
+                      </div>
+
+                      <div className="task-detail" onClick={(e) => e.stopPropagation()}>
+                        <p>Detailed instructions</p>
+                        <textarea
+                          value={meta.detailedInstructions}
+                          onChange={(e) =>
+                            updateTaskMeta(idea.id, (current) => ({ ...current, detailedInstructions: e.target.value }))
                           }
-                        }}
-                      />
-                      <small>Press Enter to add</small>
-                    </div>
-                  </div>
+                          onBlur={(e) =>
+                            updateTaskMeta(
+                              idea.id,
+                              (current) => ({ ...current, detailedInstructions: e.target.value }),
+                              'Updated detailed instructions',
+                            )
+                          }
+                          placeholder="Click task, then write detailed requirements here."
+                          rows={6}
+                        />
+                      </div>
 
-                  {isSelectedTask && (
-                    <div className="task-detail" onClick={(e) => e.stopPropagation()}>
-                      <p>Detailed instructions</p>
-                      <textarea
-                        value={meta.detailedInstructions}
-                        onChange={(e) =>
-                          updateTaskMeta(idea.id, (current) => ({ ...current, detailedInstructions: e.target.value }))
-                        }
-                        onBlur={(e) =>
-                          updateTaskMeta(
-                            idea.id,
-                            (current) => ({ ...current, detailedInstructions: e.target.value }),
-                            'Updated detailed instructions',
-                          )
-                        }
-                        placeholder="Click task, then write detailed requirements here."
-                        rows={4}
-                      />
-                    </div>
+                      <div className="activity-log" onClick={(e) => e.stopPropagation()}>
+                        <p>Recent activity</p>
+                        <ul>
+                          {(meta.activity || []).slice(0, 5).map((entry) => (
+                            <li key={entry.id}>
+                              {entry.text} — {new Date(entry.at).toLocaleString()}
+                            </li>
+                          ))}
+                          {(meta.activity || []).length === 0 && <li>No activity yet.</li>}
+                        </ul>
+                      </div>
+                    </>
                   )}
-
-                  <div className="activity-log" onClick={(e) => e.stopPropagation()}>
-                    <p>Recent activity</p>
-                    <ul>
-                      {(meta.activity || []).slice(0, 5).map((entry) => (
-                        <li key={entry.id}>
-                          {entry.text} — {new Date(entry.at).toLocaleString()}
-                        </li>
-                      ))}
-                      {(meta.activity || []).length === 0 && <li>No activity yet.</li>}
-                    </ul>
-                  </div>
                 </article>
               )
             })}

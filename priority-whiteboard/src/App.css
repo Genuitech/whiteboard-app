@@ -161,7 +161,21 @@ button.danger {
 }
 
 .ready-no {
-  color: #067647;
+  color: #b42318;
+}
+
+.notes-preview {
+  color: #667085;
+  font-size: 0.82rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.mini-meta {
+  color: #475467;
+  font-size: 0.78rem;
 }
 
 .meta {
