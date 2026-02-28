@@ -343,6 +343,7 @@ function App() {
   const [searchText, setSearchText] = useState('')
   const [showDone, setShowDone] = useState(true)
   const [showShortcuts, setShowShortcuts] = useState(false)
+  const [sortMode, setSortMode] = useState('manual')
   const [focusColumn, setFocusColumn] = useState('All')
   const [viewDensity, setViewDensity] = useState(() => localStorage.getItem('priority-whiteboard-density') || 'cozy')
   const [showWelcome, setShowWelcome] = useState(() => localStorage.getItem('priority-whiteboard-welcome-dismissed') !== 'true')
@@ -429,8 +430,23 @@ function App() {
         )
       })
       .forEach((idea) => grouped[idea.column].push(idea))
+
+    if (sortMode !== 'manual') {
+      Object.values(grouped).forEach((items) => {
+        items.sort((a, b) => {
+          if (sortMode === 'due') {
+            return (a.dueDate || '9999-12-31').localeCompare(b.dueDate || '9999-12-31')
+          }
+          if (sortMode === 'owner') {
+            return (a.owner || 'zzzz').localeCompare(b.owner || 'zzzz')
+          }
+          return a.title.localeCompare(b.title)
+        })
+      })
+    }
+
     return grouped
-  }, [ideas, assigneeFilter, showDone, searchText, focusColumn])
+  }, [ideas, assigneeFilter, showDone, searchText, focusColumn, sortMode])
 
   const myTasks = useMemo(
     () =>
@@ -939,6 +955,15 @@ function App() {
               <option value="compact">Compact</option>
             </select>
           </label>
+          <label>
+            Sort
+            <select value={sortMode} onChange={(e) => setSortMode(e.target.value)}>
+              <option value="manual">Manual</option>
+              <option value="due">Due date</option>
+              <option value="owner">Owner</option>
+              <option value="title">Title</option>
+            </select>
+          </label>
         </div>
 
         <div className="toolbar-actions">
@@ -974,7 +999,9 @@ function App() {
             onDragOver={(e) => e.preventDefault()}
             onDrop={() => onDropColumn(column)}
           >
-            <h2>{column}</h2>
+            <h2>
+              {column} <span className="column-count">({groupedIdeas[column].length})</span>
+            </h2>
             {groupedIdeas[column].map((idea) => {
               const isEditing = editingIdeaId === idea.id
               const isSelectedTask = selectedTaskId === idea.id
