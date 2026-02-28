@@ -1,0 +1,32 @@
+{
+  "version": "1.0",
+  "source": "secure_client_intake",
+  "mappings": [
+    {
+      "sourceField": "client.legal_name",
+      "targetSystem": "TARGET_SOFTWARE_A",
+      "targetField": "customer_name",
+      "transform": "trim"
+    },
+    {
+      "sourceField": "client.email",
+      "targetSystem": "TARGET_SOFTWARE_A",
+      "targetField": "email",
+      "transform": "lowercase"
+    },
+    {
+      "sourceField": "taxpayer.ssn",
+      "targetSystem": "TARGET_SOFTWARE_B",
+      "targetField": "ssn_token",
+      "transform": "tokenize_or_encrypt",
+      "sensitive": true
+    },
+    {
+      "sourceField": "bank.account_number",
+      "targetSystem": "TARGET_SOFTWARE_B",
+      "targetField": "bank_account_token",
+      "transform": "tokenize_or_encrypt",
+      "sensitive": true
+    }
+  ]
+}
