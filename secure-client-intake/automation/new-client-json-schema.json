@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "RHW Secure New Client Intake",
+  "type": "object",
+  "required": ["taxpayer", "address", "preferences"],
+  "properties": {
+    "taxpayer": {
+      "type": "object",
+      "required": ["fullName", "dob", "ssn", "cellPhone", "email"],
+      "properties": {
+        "fullName": {"type": "string"},
+        "dob": {"type": "string", "format": "date", "x-classification": "sensitive"},
+        "ssn": {"type": "string", "x-classification": "highly_sensitive"},
+        "cellPhone": {"type": "string"},
+        "email": {"type": "string", "format": "email"}
+      }
+    },
+    "address": {
+      "type": "object",
+      "properties": {
+        "street": {"type": "string"},
+        "city": {"type": "string"},
+        "state": {"type": "string"},
+        "zip": {"type": "string"}
+      }
+    },
+    "spouse": {"type": "object"},
+    "dependents": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {"type": "string"},
+          "ssn": {"type": "string", "x-classification": "highly_sensitive"},
+          "dob": {"type": "string", "format": "date", "x-classification": "sensitive"}
+        }
+      }
+    },
+    "estimatedPayments": {"type": "object"},
+    "preferences": {
+      "type": "object",
+      "properties": {
+        "yearlyOrganizer": {"type": "boolean"},
+        "portalType": {"type": "string", "enum": ["hybrid", "full"]}
+      }
+    },
+    "banking": {
+      "type": "object",
+      "properties": {
+        "directDepositRefund": {"type": "boolean"},
+        "accountType": {"type": "string"},
+        "accountNumber": {"type": "string", "x-classification": "highly_sensitive"},
+        "routingNumber": {"type": "string", "x-classification": "highly_sensitive"}
+      }
+    },
+    "referral": {"type": "string"},
+    "driversLicense": {"type": "object"}
+  }
+}
