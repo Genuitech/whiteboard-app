@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import './App.css'
 import { hasSupabase, supabase } from './supabase'
 
@@ -340,10 +340,18 @@ function App() {
     }
   })
   const [selectedTemplate, setSelectedTemplate] = useState(TASK_TEMPLATES[0].name)
+  const [searchText, setSearchText] = useState('')
+  const [showDone, setShowDone] = useState(true)
+  const [showShortcuts, setShowShortcuts] = useState(false)
+  const [lastSavedAt, setLastSavedAt] = useState(null)
+  const [history, setHistory] = useState([])
+  const [future, setFuture] = useState([])
+  const titleInputRef = useRef(null)
 
   useEffect(() => {
     if (!hasSupabase) {
       localStorage.setItem('priority-whiteboard-ideas', JSON.stringify(ideas))
+      setLastSavedAt(new Date().toISOString())
       return
     }
 
@@ -386,19 +394,31 @@ function App() {
 
   useEffect(() => {
     localStorage.setItem('priority-whiteboard-taskmeta', JSON.stringify(taskMeta))
+    if (!hasSupabase) setLastSavedAt(new Date().toISOString())
   }, [taskMeta])
 
   useEffect(() => {
     localStorage.setItem('priority-whiteboard-locked-donow', JSON.stringify(lockedDoNowIds))
+    if (!hasSupabase) setLastSavedAt(new Date().toISOString())
   }, [lockedDoNowIds])
 
   const groupedIdeas = useMemo(() => {
     const grouped = Object.fromEntries(COLUMNS.map((column) => [column, []]))
     ideas
       .filter((idea) => assigneeFilter === 'All' || (idea.owner || 'Unassigned') === assigneeFilter)
+      .filter((idea) => showDone || idea.column !== 'Done')
+      .filter((idea) => {
+        if (!searchText.trim()) return true
+        const needle = searchText.toLowerCase()
+        return (
+          idea.title.toLowerCase().includes(needle) ||
+          (idea.notes || '').toLowerCase().includes(needle) ||
+          (idea.owner || '').toLowerCase().includes(needle)
+        )
+      })
       .forEach((idea) => grouped[idea.column].push(idea))
     return grouped
-  }, [ideas, assigneeFilter])
+  }, [ideas, assigneeFilter, showDone, searchText])
 
   const myTasks = useMemo(
     () =>
@@ -431,6 +451,66 @@ function App() {
     setLockedDoNowIds((prev) => prev.filter((id) => doNowIds.has(id)))
   }, [ideas])
 
+  useEffect(() => {
+    function onKeyDown(event) {
+      if (event.key === '?' && !event.metaKey && !event.ctrlKey) {
+        event.preventDefault()
+        setShowShortcuts((prev) => !prev)
+      }
+
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'z') {
+        event.preventDefault()
+        if (event.shiftKey) {
+          redoChange()
+        } else {
+          undoChange()
+        }
+      }
+
+      if (event.key.toLowerCase() === 'n' && !event.metaKey && !event.ctrlKey) {
+        const targetTag = document.activeElement?.tagName?.toLowerCase()
+        if (targetTag !== 'input' && targetTag !== 'textarea' && targetTag !== 'select') {
+          event.preventDefault()
+          titleInputRef.current?.focus()
+        }
+      }
+    }
+
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [history, future, hasSupabase])
+
+  function captureSnapshot() {
+    setHistory((prev) => [
+      ...prev.slice(-24),
+      { ideas, taskMeta, lockedDoNowIds, selectedTaskId },
+    ])
+    setFuture([])
+  }
+
+  function undoChange() {
+    if (!history.length || hasSupabase) return
+    const previous = history[history.length - 1]
+    setFuture((f) => [{ ideas, taskMeta, lockedDoNowIds, selectedTaskId }, ...f].slice(0, 25))
+    setHistory((prev) => prev.slice(0, -1))
+    setIdeas(previous.ideas)
+    setTaskMeta(previous.taskMeta)
+    setLockedDoNowIds(previous.lockedDoNowIds)
+    setSelectedTaskId(previous.selectedTaskId)
+    setStatus('Undid last change')
+  }
+
+  function redoChange() {
+    if (!future.length || hasSupabase) return
+    const next = future[0]
+    setHistory((h) => [...h, { ideas, taskMeta, lockedDoNowIds, selectedTaskId }].slice(-25))
+    setFuture((f) => f.slice(1))
+    setIdeas(next.ideas)
+    setTaskMeta(next.taskMeta)
+    setLockedDoNowIds(next.lockedDoNowIds)
+    setSelectedTaskId(next.selectedTaskId)
+    setStatus('Restored change')
+  }
 
   async function notifyAssignment(idea, assigneeName) {
     if (!ASSIGNMENT_WEBHOOK || !assigneeName || assigneeName === 'Unassigned') return
@@ -467,6 +547,7 @@ function App() {
       const { error } = await supabase.from('ideas').insert(ideaToRow(idea))
       if (error) return setStatus(`Insert failed: ${error.message}`)
     } else {
+      captureSnapshot()
       setIdeas((prev) => [idea, ...prev])
     }
 
@@ -496,6 +577,7 @@ function App() {
       const { error } = await supabase.from('ideas').insert(ideaToRow(idea))
       if (error) return setStatus(`Template insert failed: ${error.message}`)
     } else {
+      captureSnapshot()
       setIdeas((prev) => [idea, ...prev])
     }
 
@@ -525,6 +607,7 @@ function App() {
       const { error } = await supabase.from('ideas').update(ideaToRow(updated)).eq('id', id)
       if (error) setStatus(`Update failed: ${error.message}`)
     } else {
+      captureSnapshot()
       setIdeas((prev) => prev.map((idea) => (idea.id === id ? updated : idea)))
     }
 
@@ -540,6 +623,7 @@ function App() {
       const { error } = await supabase.from('ideas').delete().eq('id', id)
       if (error) return setStatus(`Delete failed: ${error.message}`)
     } else {
+      captureSnapshot()
       setIdeas((prev) => prev.filter((idea) => idea.id !== id))
     }
 
@@ -616,6 +700,52 @@ function App() {
     updateIdea(id, (idea) => ({ ...idea, column: 'Done' }))
   }
 
+  function duplicateTask(id) {
+    const current = ideas.find((idea) => idea.id === id)
+    if (!current) return
+    const duplicate = {
+      ...current,
+      id: crypto.randomUUID(),
+      title: `${current.title} (copy)`,
+      column: current.column === 'Done' ? 'Do Next' : current.column,
+    }
+    if (!hasSupabase) {
+      captureSnapshot()
+      setIdeas((prev) => [duplicate, ...prev])
+      const currentMeta = getTaskMeta(id)
+      setTaskMeta((prev) => ({
+        ...prev,
+        [duplicate.id]: {
+          ...currentMeta,
+          activity: [
+            { id: crypto.randomUUID(), text: `Duplicated from task #${visibleTaskNumbers.get(id) || ''}`, at: new Date().toISOString() },
+            ...(currentMeta.activity || []),
+          ],
+        },
+      }))
+    }
+  }
+
+  async function clearCompletedTasks() {
+    const doneItems = ideas.filter((idea) => idea.column === 'Done')
+    if (!doneItems.length) return setStatus('No completed tasks to clear')
+    if (!window.confirm(`Clear ${doneItems.length} completed task(s)?`)) return
+
+    if (hasSupabase) {
+      const doneIds = doneItems.map((item) => item.id)
+      const { error } = await supabase.from('ideas').delete().in('id', doneIds)
+      if (error) return setStatus(`Clear failed: ${error.message}`)
+    } else {
+      captureSnapshot()
+      const doneIds = new Set(doneItems.map((item) => item.id))
+      setIdeas((prev) => prev.filter((idea) => !doneIds.has(idea.id)))
+      setTaskMeta((prev) =>
+        Object.fromEntries(Object.entries(prev).filter(([id]) => !doneIds.has(id))),
+      )
+      setSelectedTaskId((prev) => (prev && doneIds.has(prev) ? null : prev))
+    }
+  }
+
   function startEditing(idea) {
     setEditingIdeaId(idea.id)
     setEditDraft({ title: idea.title, notes: idea.notes || '', column: idea.column })
@@ -664,6 +794,7 @@ function App() {
   }
 
   function updateTaskMeta(id, updateFn, activityText = '') {
+    if (!hasSupabase && activityText) captureSnapshot()
     setTaskMeta((prev) => {
       const current = prev[id] || defaultTaskMeta()
       let updated = updateFn(current)
@@ -728,24 +859,57 @@ function App() {
     <div className="app">
       <header>
         <h1>Priority Whiteboard</h1>
-        <p>Capture ideas, prioritize execution, and move work to done.</p>
-        <p>Click any task card to open detailed instructions.</p>
+        <p>Simple board, faster execution. Click a card to open full details.</p>
         <p className="status">Mode: {status}</p>
       </header>
 
-      <section className="filters">
-        <label>
-          Filter by assignee
-          <select value={assigneeFilter} onChange={(e) => setAssigneeFilter(e.target.value)}>
-            <option value="All">All</option>
-            {TEAM_MEMBERS.map((member) => (
-              <option key={member.name} value={member.name}>
-                {member.name}
-              </option>
-            ))}
-          </select>
-        </label>
-        <p className="status">Sprint lock: {lockedDoNowIds.length}/{MAX_LOCKED_DO_NOW} Do Now tasks locked</p>
+      <section className="toolbar">
+        <div className="toolbar-main">
+          <input
+            placeholder="Search tasks, notes, owners…"
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+          />
+          <label className="checkbox-inline">
+            <input type="checkbox" checked={showDone} onChange={(e) => setShowDone(e.target.checked)} />
+            Show Done
+          </label>
+          <label>
+            Assignee
+            <select value={assigneeFilter} onChange={(e) => setAssigneeFilter(e.target.value)}>
+              <option value="All">All</option>
+              {TEAM_MEMBERS.map((member) => (
+                <option key={member.name} value={member.name}>
+                  {member.name}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+
+        <div className="toolbar-actions">
+          <button className="secondary" onClick={undoChange} disabled={!history.length || hasSupabase}>
+            Undo
+          </button>
+          <button className="secondary" onClick={redoChange} disabled={!future.length || hasSupabase}>
+            Redo
+          </button>
+          <button className="secondary" onClick={() => setShowShortcuts(true)}>
+            Shortcuts
+          </button>
+          <button className="secondary" onClick={clearCompletedTasks}>
+            Clear Done
+          </button>
+        </div>
+
+        <div className="toolbar-stats">
+          <span>Sprint lock: {lockedDoNowIds.length}/{MAX_LOCKED_DO_NOW}</span>
+          <span>Total visible: {orderedVisibleIdeas.length}</span>
+          <span>
+            Last saved:{' '}
+            {lastSavedAt ? new Date(lastSavedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—'}
+          </span>
+        </div>
       </section>
 
       <main className="board">
@@ -842,6 +1006,11 @@ function App() {
                         <button className="secondary" onClick={() => startEditing(idea)}>
                           Edit
                         </button>
+                        {!hasSupabase && (
+                          <button className="secondary" onClick={() => duplicateTask(idea.id)}>
+                            Duplicate
+                          </button>
+                        )}
                         <button className="danger" onClick={() => deleteIdea(idea.id)}>
                           Delete
                         </button>
@@ -1053,6 +1222,7 @@ function App() {
         <h2>Add Task</h2>
         <form onSubmit={addIdea}>
           <input
+            ref={titleInputRef}
             value={newIdea.title}
             onChange={(e) => setNewIdea((p) => ({ ...p, title: e.target.value }))}
             placeholder="Task title"
@@ -1135,6 +1305,23 @@ function App() {
           rows={12}
         />
       </section>
+
+      {showShortcuts && (
+        <div className="shortcut-modal" onClick={() => setShowShortcuts(false)}>
+          <div className="shortcut-modal-card" onClick={(e) => e.stopPropagation()}>
+            <h3>Keyboard shortcuts</h3>
+            <ul>
+              <li><strong>N</strong>: focus new task title</li>
+              <li><strong>?</strong>: open/close this panel</li>
+              <li><strong>Cmd/Ctrl + Z</strong>: undo (local mode)</li>
+              <li><strong>Cmd/Ctrl + Shift + Z</strong>: redo (local mode)</li>
+            </ul>
+            <button className="secondary" onClick={() => setShowShortcuts(false)}>
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

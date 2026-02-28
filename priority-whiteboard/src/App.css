@@ -20,13 +20,57 @@ header p {
   font-weight: 600;
 }
 
-.filters,
+.toolbar,
 .composer {
   margin: 1rem 0 1.25rem;
   background: #f8fafc;
   border: 1px solid #e4e7ec;
   border-radius: 10px;
   padding: 0.8rem;
+}
+
+.toolbar {
+  position: sticky;
+  top: 0.35rem;
+  z-index: 8;
+  box-shadow: 0 8px 24px rgba(16, 24, 40, 0.08);
+}
+
+.toolbar-main {
+  display: grid;
+  grid-template-columns: 2fr auto auto;
+  gap: 0.55rem;
+  align-items: end;
+}
+
+.toolbar-actions {
+  margin-top: 0.55rem;
+  display: flex;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+}
+
+.toolbar-actions button {
+  width: auto;
+}
+
+.toolbar-stats {
+  margin-top: 0.55rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  color: #475467;
+  font-size: 0.8rem;
+}
+
+.checkbox-inline {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.checkbox-inline input {
+  width: auto;
 }
 
 .composer form {
@@ -90,7 +134,7 @@ button.secondary {
 }
 
 button.danger {
-  background: #039855;
+  background: #b42318;
   color: #fff;
 }
 
@@ -117,9 +161,15 @@ button.danger {
   background: white;
   border: 1px solid #d0d5dd;
   border-radius: 8px;
-  padding: 0.55rem;
+  padding: 0.65rem;
   margin-bottom: 0.6rem;
   cursor: pointer;
+  transition: box-shadow 120ms ease, transform 120ms ease;
+}
+
+.card:hover {
+  box-shadow: 0 8px 18px rgba(16, 24, 40, 0.08);
+  transform: translateY(-1px);
 }
 
 .card-selected {
@@ -332,6 +382,32 @@ button.danger {
   padding-left: 1rem;
 }
 
+.shortcut-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(16, 24, 40, 0.45);
+  display: grid;
+  place-items: center;
+  z-index: 30;
+}
+
+.shortcut-modal-card {
+  width: min(520px, 90vw);
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e4e7ec;
+  padding: 1rem;
+}
+
+.shortcut-modal-card ul {
+  padding-left: 1.1rem;
+  color: #344054;
+}
+
+.shortcut-modal-card button {
+  width: auto;
+}
+
 @media (max-width: 900px) {
   .board {
     grid-template-columns: 1fr;
@@ -339,5 +415,13 @@ button.danger {
 
   .composer form {
     grid-template-columns: 1fr;
+  }
+
+  .toolbar-main {
+    grid-template-columns: 1fr;
+  }
+
+  .toolbar {
+    position: static;
   }
 }
