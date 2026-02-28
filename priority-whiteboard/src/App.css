@@ -20,6 +20,28 @@ header p {
   font-weight: 600;
 }
 
+.welcome-tip {
+  margin: 0.8rem 0;
+  background: #eef4ff;
+  border: 1px solid #c7d7fe;
+  color: #1d2939;
+  border-radius: 10px;
+  padding: 0.7rem 0.8rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.welcome-tip p {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.welcome-tip button {
+  width: auto;
+}
+
 .toolbar,
 .composer {
   margin: 1rem 0 1.25rem;
@@ -38,7 +60,7 @@ header p {
 
 .toolbar-main {
   display: grid;
-  grid-template-columns: 2fr auto auto;
+  grid-template-columns: 2fr auto auto auto auto;
   gap: 0.55rem;
   align-items: end;
 }
@@ -180,6 +202,25 @@ button.danger {
 .card h3 {
   margin: 0 0 0.2rem;
   font-size: 0.95rem;
+}
+
+.board-compact .card {
+  padding: 0.45rem;
+}
+
+.board-compact .card h3 {
+  font-size: 0.86rem;
+}
+
+.board-compact .notes-preview,
+.board-compact .mini-meta,
+.board-compact .assignee {
+  font-size: 0.74rem;
+}
+
+.board-compact .meta button {
+  font-size: 0.72rem;
+  padding: 0.3rem 0.35rem;
 }
 
 .card p {
@@ -423,5 +464,10 @@ button.danger {
 
   .toolbar {
     position: static;
+  }
+
+  .welcome-tip {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }

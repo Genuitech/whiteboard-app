@@ -343,6 +343,9 @@ function App() {
   const [searchText, setSearchText] = useState('')
   const [showDone, setShowDone] = useState(true)
   const [showShortcuts, setShowShortcuts] = useState(false)
+  const [focusColumn, setFocusColumn] = useState('All')
+  const [viewDensity, setViewDensity] = useState(() => localStorage.getItem('priority-whiteboard-density') || 'cozy')
+  const [showWelcome, setShowWelcome] = useState(() => localStorage.getItem('priority-whiteboard-welcome-dismissed') !== 'true')
   const [lastSavedAt, setLastSavedAt] = useState(null)
   const [history, setHistory] = useState([])
   const [future, setFuture] = useState([])
@@ -402,11 +405,20 @@ function App() {
     if (!hasSupabase) setLastSavedAt(new Date().toISOString())
   }, [lockedDoNowIds])
 
+  useEffect(() => {
+    localStorage.setItem('priority-whiteboard-density', viewDensity)
+  }, [viewDensity])
+
+  useEffect(() => {
+    localStorage.setItem('priority-whiteboard-welcome-dismissed', showWelcome ? 'false' : 'true')
+  }, [showWelcome])
+
   const groupedIdeas = useMemo(() => {
     const grouped = Object.fromEntries(COLUMNS.map((column) => [column, []]))
     ideas
       .filter((idea) => assigneeFilter === 'All' || (idea.owner || 'Unassigned') === assigneeFilter)
       .filter((idea) => showDone || idea.column !== 'Done')
+      .filter((idea) => focusColumn === 'All' || idea.column === focusColumn)
       .filter((idea) => {
         if (!searchText.trim()) return true
         const needle = searchText.toLowerCase()
@@ -418,7 +430,7 @@ function App() {
       })
       .forEach((idea) => grouped[idea.column].push(idea))
     return grouped
-  }, [ideas, assigneeFilter, showDone, searchText])
+  }, [ideas, assigneeFilter, showDone, searchText, focusColumn])
 
   const myTasks = useMemo(
     () =>
@@ -426,6 +438,11 @@ function App() {
         .filter((idea) => idea.owner === myTasksFor)
         .sort((a, b) => (a.dueDate || '9999-12-31').localeCompare(b.dueDate || '9999-12-31')),
     [ideas, myTasksFor],
+  )
+
+  const visibleColumns = useMemo(
+    () => (focusColumn === 'All' ? COLUMNS : [focusColumn]),
+    [focusColumn],
   )
 
   const orderedVisibleIdeas = useMemo(() => COLUMNS.flatMap((column) => groupedIdeas[column] || []), [groupedIdeas])
@@ -472,6 +489,14 @@ function App() {
         if (targetTag !== 'input' && targetTag !== 'textarea' && targetTag !== 'select') {
           event.preventDefault()
           titleInputRef.current?.focus()
+        }
+      }
+
+      if (event.key.toLowerCase() === 'c' && !event.metaKey && !event.ctrlKey) {
+        const targetTag = document.activeElement?.tagName?.toLowerCase()
+        if (targetTag !== 'input' && targetTag !== 'textarea' && targetTag !== 'select') {
+          event.preventDefault()
+          setViewDensity((prev) => (prev === 'cozy' ? 'compact' : 'cozy'))
         }
       }
     }
@@ -863,6 +888,17 @@ function App() {
         <p className="status">Mode: {status}</p>
       </header>
 
+      {showWelcome && (
+        <section className="welcome-tip">
+          <p>
+            Tip: press <strong>N</strong> to add fast, <strong>Cmd/Ctrl+Z</strong> to undo, and <strong>?</strong> for shortcuts.
+          </p>
+          <button className="secondary" onClick={() => setShowWelcome(false)}>
+            Dismiss
+          </button>
+        </section>
+      )}
+
       <section className="toolbar">
         <div className="toolbar-main">
           <input
@@ -883,6 +919,24 @@ function App() {
                   {member.name}
                 </option>
               ))}
+            </select>
+          </label>
+          <label>
+            Focus column
+            <select value={focusColumn} onChange={(e) => setFocusColumn(e.target.value)}>
+              <option value="All">All</option>
+              {COLUMNS.map((column) => (
+                <option key={column} value={column}>
+                  {column}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Density
+            <select value={viewDensity} onChange={(e) => setViewDensity(e.target.value)}>
+              <option value="cozy">Cozy</option>
+              <option value="compact">Compact</option>
             </select>
           </label>
         </div>
@@ -912,8 +966,8 @@ function App() {
         </div>
       </section>
 
-      <main className="board">
-        {COLUMNS.map((column) => (
+      <main className={`board board-${viewDensity}`}>
+        {visibleColumns.map((column) => (
           <div
             key={column}
             className="column"
@@ -1315,6 +1369,7 @@ function App() {
               <li><strong>?</strong>: open/close this panel</li>
               <li><strong>Cmd/Ctrl + Z</strong>: undo (local mode)</li>
               <li><strong>Cmd/Ctrl + Shift + Z</strong>: redo (local mode)</li>
+              <li><strong>C</strong>: toggle cozy/compact card density</li>
             </ul>
             <button className="secondary" onClick={() => setShowShortcuts(false)}>
               Close
