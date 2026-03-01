@@ -393,8 +393,26 @@ function App() {
         setStatus('Realtime error (using local cache)')
         return
       }
+
+      const fetchedIdeas = (data || []).map(rowToIdea)
+      const mergedIdeas = mergeSeedIdeas(fetchedIdeas)
+      const fetchedTitles = new Set(fetchedIdeas.map((idea) => idea.title.trim().toLowerCase()))
+      const missingSeeds = localSeedIdeas.filter(
+        (idea) => !fetchedTitles.has(idea.title.trim().toLowerCase()),
+      )
+
+      if (missingSeeds.length > 0) {
+        const { error: seedError } = await supabase
+          .from('ideas')
+          .insert(missingSeeds.map((idea) => ideaToRow(idea)))
+
+        if (seedError) {
+          setStatus(`Seed sync warning: ${seedError.message}`)
+        }
+      }
+
       if (!ignore) {
-        setIdeas((data || []).map(rowToIdea))
+        setIdeas(mergedIdeas)
         setStatus('Realtime connected')
       }
     }
