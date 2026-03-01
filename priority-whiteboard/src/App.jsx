@@ -364,6 +364,9 @@ function App() {
   const [showDone, setShowDone] = useState(true)
   const [showShortcuts, setShowShortcuts] = useState(false)
   const [sortMode, setSortMode] = useState('manual')
+  const [quickFilter, setQuickFilter] = useState('all')
+  const [expandedColumns, setExpandedColumns] = useState({})
+  const [showSecondaryPanels, setShowSecondaryPanels] = useState(false)
   const [showCommandPalette, setShowCommandPalette] = useState(false)
   const [commandQuery, setCommandQuery] = useState('')
   const [focusColumn, setFocusColumn] = useState('All')
@@ -454,12 +457,21 @@ function App() {
     localStorage.setItem('priority-whiteboard-welcome-dismissed', showWelcome ? 'false' : 'true')
   }, [showWelcome])
 
+  const today = new Date().toISOString().slice(0, 10)
+
   const groupedIdeas = useMemo(() => {
     const grouped = Object.fromEntries(COLUMNS.map((column) => [column, []]))
     ideas
       .filter((idea) => assigneeFilter === 'All' || (idea.owner || 'Unassigned') === assigneeFilter)
       .filter((idea) => showDone || idea.column !== 'Done')
       .filter((idea) => focusColumn === 'All' || idea.column === focusColumn)
+      .filter((idea) => {
+        if (quickFilter === 'today') return idea.dueDate === today
+        if (quickFilter === 'overdue') return Boolean(idea.dueDate) && idea.dueDate < today && idea.column !== 'Done'
+        if (quickFilter === 'high') return idea.metrics.urgency >= 4 || idea.metrics.impact >= 4
+        if (quickFilter === 'mine') return idea.owner === myTasksFor
+        return true
+      })
       .filter((idea) => {
         if (!searchText.trim()) return true
         const needle = searchText.toLowerCase()
@@ -486,7 +498,7 @@ function App() {
     }
 
     return grouped
-  }, [ideas, assigneeFilter, showDone, searchText, focusColumn, sortMode])
+  }, [ideas, assigneeFilter, showDone, searchText, focusColumn, sortMode, quickFilter, myTasksFor, today])
 
   const myTasks = useMemo(
     () =>
@@ -518,6 +530,23 @@ function App() {
       })
     return totals
   }, [ideas, taskMeta])
+
+  const dashboardStats = useMemo(() => {
+    const active = ideas.filter((idea) => idea.column !== 'Done')
+    const dueToday = active.filter((idea) => idea.dueDate === today).length
+    const overdue = active.filter((idea) => idea.dueDate && idea.dueDate < today).length
+    const highPriority = active.filter((idea) => idea.metrics.urgency >= 4 || idea.metrics.impact >= 4).length
+    const completionRate = ideas.length ? Math.round((ideas.filter((idea) => idea.column === 'Done').length / ideas.length) * 100) : 0
+
+    return {
+      total: ideas.length,
+      active: active.length,
+      dueToday,
+      overdue,
+      highPriority,
+      completionRate,
+    }
+  }, [ideas, today])
 
   useEffect(() => {
     const doNowIds = new Set(ideas.filter((idea) => idea.column === 'Do Now').map((idea) => idea.id))
@@ -950,7 +979,7 @@ function App() {
     { id: 'toggle-done', label: showDone ? 'Hide Done column' : 'Show Done column', run: () => setShowDone((p) => !p) },
     { id: 'toggle-density', label: `Switch to ${viewDensity === 'cozy' ? 'compact' : 'cozy'} view`, run: () => setViewDensity((p) => (p === 'cozy' ? 'compact' : 'cozy')) },
     { id: 'focus-donow', label: 'Focus Do Now column', run: () => setFocusColumn('Do Now') },
-    { id: 'clear-filters', label: 'Clear all filters', run: () => { setSearchText(''); setAssigneeFilter('All'); setFocusColumn('All'); setShowDone(true) } },
+    { id: 'clear-filters', label: 'Clear all filters', run: () => { setSearchText(''); setAssigneeFilter('All'); setFocusColumn('All'); setQuickFilter('all'); setShowDone(true) } },
     { id: 'summary', label: 'Generate weekly summary', run: () => generateWeeklySummary() },
   ]
 
@@ -981,6 +1010,14 @@ function App() {
         </section>
       )}
 
+      <section className="snapshot-strip">
+        <article><strong>{dashboardStats.active}</strong><span>Active</span></article>
+        <article><strong>{dashboardStats.dueToday}</strong><span>Due today</span></article>
+        <article><strong>{dashboardStats.overdue}</strong><span>Overdue</span></article>
+        <article><strong>{dashboardStats.highPriority}</strong><span>High priority</span></article>
+        <article><strong>{dashboardStats.completionRate}%</strong><span>Completed</span></article>
+      </section>
+
       <section className="toolbar">
         <div className="toolbar-main">
           <input
@@ -988,6 +1025,13 @@ function App() {
             value={searchText}
             onChange={(e) => setSearchText(e.target.value)}
           />
+          <div className="quick-filters">
+            <button type="button" className={quickFilter === 'all' ? 'chip chip-active' : 'chip'} onClick={() => setQuickFilter('all')}>All</button>
+            <button type="button" className={quickFilter === 'today' ? 'chip chip-active' : 'chip'} onClick={() => setQuickFilter('today')}>Today</button>
+            <button type="button" className={quickFilter === 'overdue' ? 'chip chip-active' : 'chip'} onClick={() => setQuickFilter('overdue')}>Overdue</button>
+            <button type="button" className={quickFilter === 'high' ? 'chip chip-active' : 'chip'} onClick={() => setQuickFilter('high')}>High Priority</button>
+            <button type="button" className={quickFilter === 'mine' ? 'chip chip-active' : 'chip'} onClick={() => setQuickFilter('mine')}>Mine ({myTasksFor})</button>
+          </div>
           <label className="checkbox-inline">
             <input type="checkbox" checked={showDone} onChange={(e) => setShowDone(e.target.checked)} />
             Show Done
@@ -1045,6 +1089,9 @@ function App() {
           <button className="secondary" onClick={clearCompletedTasks}>
             Clear Done
           </button>
+          <button className="secondary" onClick={() => setShowSecondaryPanels((p) => !p)}>
+            {showSecondaryPanels ? 'Hide extra panels' : 'Show extra panels'}
+          </button>
         </div>
 
         <div className="toolbar-stats">
@@ -1068,7 +1115,7 @@ function App() {
             <h2>
               {column} <span className="column-count">({groupedIdeas[column].length})</span>
             </h2>
-            {groupedIdeas[column].map((idea) => {
+            {(expandedColumns[column] ? groupedIdeas[column] : groupedIdeas[column].slice(0, 6)).map((idea) => {
               const isEditing = editingIdeaId === idea.id
               const isSelectedTask = selectedTaskId === idea.id
 
@@ -1387,6 +1434,15 @@ function App() {
                 </article>
               )
             })}
+            {groupedIdeas[column].length > 6 && (
+              <button
+                type="button"
+                className="secondary column-expand"
+                onClick={() => setExpandedColumns((prev) => ({ ...prev, [column]: !prev[column] }))}
+              >
+                {expandedColumns[column] ? 'Show less' : `Show all (${groupedIdeas[column].length})`}
+              </button>
+            )}
           </div>
         ))}
       </main>
@@ -1427,57 +1483,61 @@ function App() {
         </div>
       </section>
 
-      <section className="my-tasks">
-        <h2>My Tasks View</h2>
-        <label>
-          Team member
-          <select value={myTasksFor} onChange={(e) => setMyTasksFor(e.target.value)}>
-            {TEAM_MEMBERS.filter((m) => m.name !== 'Unassigned').map((member) => (
-              <option key={member.name} value={member.name}>
-                {member.name}
-              </option>
-            ))}
-          </select>
-        </label>
-        <ul>
-          {myTasks.length === 0 && <li>No tasks assigned.</li>}
-          {myTasks.map((task) => (
-            <li key={task.id}>
-              {task.title} — {task.column} — due {task.dueDate || 'TBD'}
-            </li>
-          ))}
-        </ul>
-      </section>
+      {showSecondaryPanels && (
+        <>
+          <section className="my-tasks">
+            <h2>My Tasks View</h2>
+            <label>
+              Team member
+              <select value={myTasksFor} onChange={(e) => setMyTasksFor(e.target.value)}>
+                {TEAM_MEMBERS.filter((m) => m.name !== 'Unassigned').map((member) => (
+                  <option key={member.name} value={member.name}>
+                    {member.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <ul>
+              {myTasks.length === 0 && <li>No tasks assigned.</li>}
+              {myTasks.map((task) => (
+                <li key={task.id}>
+                  {task.title} — {task.column} — due {task.dueDate || 'TBD'}
+                </li>
+              ))}
+            </ul>
+          </section>
 
-      <section className="capacity-view">
-        <h2>Capacity View (estimated active hours)</h2>
-        <ul>
-          {Object.keys(capacityByOwner).length === 0 && <li>No estimated hours entered yet.</li>}
-          {Object.entries(capacityByOwner)
-            .sort((a, b) => b[1] - a[1])
-            .map(([owner, hours]) => (
-              <li key={owner}>
-                {owner}: {hours} hrs
-              </li>
-            ))}
-        </ul>
-      </section>
+          <section className="capacity-view">
+            <h2>Capacity View (estimated active hours)</h2>
+            <ul>
+              {Object.keys(capacityByOwner).length === 0 && <li>No estimated hours entered yet.</li>}
+              {Object.entries(capacityByOwner)
+                .sort((a, b) => b[1] - a[1])
+                .map(([owner, hours]) => (
+                  <li key={owner}>
+                    {owner}: {hours} hrs
+                  </li>
+                ))}
+            </ul>
+          </section>
 
-      <section className="weekly-summary">
-        <h2>Weekly Summary Export</h2>
-        <div className="meta">
-          <button onClick={generateWeeklySummary}>Generate summary</button>
-          <button className="secondary" onClick={copySummary}>
-            Copy summary
-          </button>
-        </div>
-        <textarea
-          value={summaryText}
-          onChange={(e) => setSummaryText(e.target.value)}
-          placeholder="Generate summary to copy into email, WhatsApp, or team updates."
-          rows={12}
-        />
-      </section>
+          <section className="weekly-summary">
+            <h2>Weekly Summary Export</h2>
+            <div className="meta">
+              <button onClick={generateWeeklySummary}>Generate summary</button>
+              <button className="secondary" onClick={copySummary}>
+                Copy summary
+              </button>
+            </div>
+            <textarea
+              value={summaryText}
+              onChange={(e) => setSummaryText(e.target.value)}
+              placeholder="Generate summary to copy into email, WhatsApp, or team updates."
+              rows={12}
+            />
+          </section>
+        </>
+      )}
 
       {showCommandPalette && (
         <div className="shortcut-modal" onClick={() => setShowCommandPalette(false)}>
