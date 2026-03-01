@@ -344,6 +344,8 @@ function App() {
   const [showDone, setShowDone] = useState(true)
   const [showShortcuts, setShowShortcuts] = useState(false)
   const [sortMode, setSortMode] = useState('manual')
+  const [showCommandPalette, setShowCommandPalette] = useState(false)
+  const [commandQuery, setCommandQuery] = useState('')
   const [focusColumn, setFocusColumn] = useState('All')
   const [viewDensity, setViewDensity] = useState(() => localStorage.getItem('priority-whiteboard-density') || 'cozy')
   const [showWelcome, setShowWelcome] = useState(() => localStorage.getItem('priority-whiteboard-welcome-dismissed') !== 'true')
@@ -513,6 +515,15 @@ function App() {
         if (targetTag !== 'input' && targetTag !== 'textarea' && targetTag !== 'select') {
           event.preventDefault()
           setViewDensity((prev) => (prev === 'cozy' ? 'compact' : 'cozy'))
+        }
+      }
+
+      if (event.key === '/' && !event.metaKey && !event.ctrlKey) {
+        const targetTag = document.activeElement?.tagName?.toLowerCase()
+        if (targetTag !== 'input' && targetTag !== 'textarea' && targetTag !== 'select') {
+          event.preventDefault()
+          setShowCommandPalette(true)
+          setCommandQuery('')
         }
       }
     }
@@ -896,6 +907,23 @@ function App() {
     await navigator.clipboard.writeText(summaryText)
   }
 
+  const commands = [
+    { id: 'focus-add', label: 'Focus add task input', run: () => titleInputRef.current?.focus() },
+    { id: 'toggle-done', label: showDone ? 'Hide Done column' : 'Show Done column', run: () => setShowDone((p) => !p) },
+    { id: 'toggle-density', label: `Switch to ${viewDensity === 'cozy' ? 'compact' : 'cozy'} view`, run: () => setViewDensity((p) => (p === 'cozy' ? 'compact' : 'cozy')) },
+    { id: 'focus-donow', label: 'Focus Do Now column', run: () => setFocusColumn('Do Now') },
+    { id: 'clear-filters', label: 'Clear all filters', run: () => { setSearchText(''); setAssigneeFilter('All'); setFocusColumn('All'); setShowDone(true) } },
+    { id: 'summary', label: 'Generate weekly summary', run: () => generateWeeklySummary() },
+  ]
+
+  const filteredCommands = commands.filter((cmd) => cmd.label.toLowerCase().includes(commandQuery.toLowerCase()))
+
+  function runCommand(command) {
+    command.run()
+    setShowCommandPalette(false)
+    setStatus(`Command: ${command.label}`)
+  }
+
   return (
     <div className="app">
       <header>
@@ -1052,6 +1080,32 @@ function App() {
                   )}
 
                   <p className="assignee">Assigned: {idea.owner || 'Unassigned'}</p>
+                  {!isEditing && (
+                    <div className="quick-inline" onClick={(e) => e.stopPropagation()}>
+                      <select
+                        aria-label="Quick assign owner"
+                        value={idea.owner || 'Unassigned'}
+                        onChange={(e) =>
+                          updateIdea(idea.id, (i) => ({
+                            ...i,
+                            owner: e.target.value === 'Unassigned' ? '' : e.target.value,
+                          }))
+                        }
+                      >
+                        {TEAM_MEMBERS.map((member) => (
+                          <option key={member.name} value={member.name}>
+                            {member.name}
+                          </option>
+                        ))}
+                      </select>
+                      <input
+                        aria-label="Quick due date"
+                        type="date"
+                        value={idea.dueDate}
+                        onChange={(e) => updateIdea(idea.id, (i) => ({ ...i, dueDate: e.target.value }))}
+                      />
+                    </div>
+                  )}
                   <p className={isReadyForDoNow(idea) ? 'ready ready-yes' : 'ready ready-no'}>
                     {isReadyForDoNow(idea) ? 'Ready for Do Now' : 'Not Ready for Do Now'}
                   </p>
@@ -1387,6 +1441,33 @@ function App() {
         />
       </section>
 
+      {showCommandPalette && (
+        <div className="shortcut-modal" onClick={() => setShowCommandPalette(false)}>
+          <div className="shortcut-modal-card" onClick={(e) => e.stopPropagation()}>
+            <h3>Command palette</h3>
+            <input
+              autoFocus
+              placeholder="Type a command..."
+              value={commandQuery}
+              onChange={(e) => setCommandQuery(e.target.value)}
+            />
+            <ul>
+              {filteredCommands.map((command) => (
+                <li key={command.id}>
+                  <button className="secondary command-btn" onClick={() => runCommand(command)}>
+                    {command.label}
+                  </button>
+                </li>
+              ))}
+              {filteredCommands.length === 0 && <li>No matching commands.</li>}
+            </ul>
+            <button className="secondary" onClick={() => setShowCommandPalette(false)}>
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+
       {showShortcuts && (
         <div className="shortcut-modal" onClick={() => setShowShortcuts(false)}>
           <div className="shortcut-modal-card" onClick={(e) => e.stopPropagation()}>
@@ -1397,6 +1478,7 @@ function App() {
               <li><strong>Cmd/Ctrl + Z</strong>: undo (local mode)</li>
               <li><strong>Cmd/Ctrl + Shift + Z</strong>: redo (local mode)</li>
               <li><strong>C</strong>: toggle cozy/compact card density</li>
+              <li><strong>/</strong>: open command palette</li>
             </ul>
             <button className="secondary" onClick={() => setShowShortcuts(false)}>
               Close

@@ -275,6 +275,19 @@ button.danger {
   font-size: 0.78rem;
 }
 
+.quick-inline {
+  margin-top: 0.35rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.35rem;
+}
+
+.quick-inline select,
+.quick-inline input {
+  font-size: 0.74rem;
+  padding: 0.3rem 0.35rem;
+}
+
 .meta {
   display: flex;
   flex-wrap: wrap;
@@ -449,6 +462,12 @@ button.danger {
 .shortcut-modal-card ul {
   padding-left: 1.1rem;
   color: #344054;
+}
+
+.command-btn {
+  width: 100%;
+  text-align: left;
+  margin: 0.2rem 0;
 }
 
 .shortcut-modal-card button {
