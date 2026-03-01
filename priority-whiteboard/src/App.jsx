@@ -392,7 +392,7 @@ function App() {
       const { data, error } = await supabase
         .from('ideas')
         .select('*')
-        .order('updated_at', { ascending: false })
+        .order('title', { ascending: true })
 
       if (error) {
         setStatus('Realtime error (using local cache)')
