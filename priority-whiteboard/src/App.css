@@ -283,6 +283,20 @@ button.danger {
   font-size: 0.95rem;
 }
 
+.task-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.task-caret {
+  color: #667085;
+  width: 0.9rem;
+  display: inline-flex;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
 .board-compact .card {
   padding: 0.45rem;
 }

@@ -1168,8 +1168,9 @@ function App() {
                     </>
                   ) : (
                     <>
-                      <h3>
-                        {visibleTaskNumbers.get(idea.id)} — {idea.title}
+                      <h3 className="task-title-row">
+                        <span className="task-caret" aria-hidden="true">{isSelectedTask ? '▾' : '▸'}</span>
+                        <span>{visibleTaskNumbers.get(idea.id)} — {idea.title}</span>
                       </h3>
                       {notesPreview && <p className="notes-preview">{notesPreview}</p>}
                     </>
