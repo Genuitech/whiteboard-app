@@ -792,6 +792,22 @@ function App() {
     setDraggedId(null)
   }
 
+  function moveTaskByStep(id, direction) {
+    const current = ideas.find((idea) => idea.id === id)
+    if (!current) return
+    const idx = COLUMNS.indexOf(current.column)
+    if (idx === -1) return
+    const nextIdx = Math.min(COLUMNS.length - 1, Math.max(0, idx + direction))
+    const target = COLUMNS[nextIdx]
+    if (target === current.column) return
+    if (target === 'Do Now' && !validateMoveToDoNow(current)) return
+    if (lockedDoNowIds.includes(id) && target !== 'Do Now') {
+      setStatus('Locked sprint task: unlock it first to move it out of Do Now')
+      return
+    }
+    updateIdea(id, (idea) => ({ ...idea, column: target }))
+  }
+
   function promoteToTask(id) {
     const current = ideas.find((idea) => idea.id === id)
     if (!current || !validateMoveToDoNow(current)) return
@@ -1193,6 +1209,12 @@ function App() {
                             ))}
                           </select>
                         </label>
+                        <button type="button" className="secondary mini-btn" onClick={() => moveTaskByStep(idea.id, -1)}>
+                          ←
+                        </button>
+                        <button type="button" className="secondary mini-btn" onClick={() => moveTaskByStep(idea.id, 1)}>
+                          →
+                        </button>
                       </div>
                       {notesPreview && <p className="notes-preview">{notesPreview}</p>}
                     </>

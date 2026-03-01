@@ -309,6 +309,12 @@ button.danger {
   color: #475467;
 }
 
+.mini-btn {
+  width: auto;
+  padding: 0.2rem 0.45rem;
+  margin-left: 0.25rem;
+}
+
 .quick-move select {
   width: auto;
   min-width: 7rem;
