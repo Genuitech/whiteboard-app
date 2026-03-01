@@ -772,6 +772,7 @@ function App() {
   }
 
   function onDropColumn(column, event) {
+    event?.preventDefault?.()
     const droppedId = draggedId || event?.dataTransfer?.getData('text/plain')
     if (!droppedId) return
     const current = ideas.find((idea) => idea.id === droppedId)
@@ -790,22 +791,6 @@ function App() {
 
     updateIdea(droppedId, (idea) => ({ ...idea, column }))
     setDraggedId(null)
-  }
-
-  function moveTaskByStep(id, direction) {
-    const current = ideas.find((idea) => idea.id === id)
-    if (!current) return
-    const idx = COLUMNS.indexOf(current.column)
-    if (idx === -1) return
-    const nextIdx = Math.min(COLUMNS.length - 1, Math.max(0, idx + direction))
-    const target = COLUMNS[nextIdx]
-    if (target === current.column) return
-    if (target === 'Do Now' && !validateMoveToDoNow(current)) return
-    if (lockedDoNowIds.includes(id) && target !== 'Do Now') {
-      setStatus('Locked sprint task: unlock it first to move it out of Do Now')
-      return
-    }
-    updateIdea(id, (idea) => ({ ...idea, column: target }))
   }
 
   function promoteToTask(id) {
@@ -1137,7 +1122,10 @@ function App() {
           <div
             key={column}
             className="column"
-            onDragOver={(e) => e.preventDefault()}
+            onDragOver={(e) => {
+              e.preventDefault()
+              e.dataTransfer.dropEffect = 'move'
+            }}
             onDrop={(e) => onDropColumn(column, e)}
           >
             <h2>
@@ -1194,28 +1182,6 @@ function App() {
                         <span className="task-caret" aria-hidden="true">{isSelectedTask ? '▾' : '▸'}</span>
                         <span>{visibleTaskNumbers.get(idea.id)} — {idea.title}</span>
                       </h3>
-                      <div className="quick-move" onClick={(e) => e.stopPropagation()}>
-                        <label>
-                          Move to
-                          <select
-                            aria-label="Quick move column"
-                            value={idea.column}
-                            onChange={(e) => updateIdea(idea.id, (i) => ({ ...i, column: e.target.value }))}
-                          >
-                            {COLUMNS.map((col) => (
-                              <option key={col} value={col}>
-                                {col}
-                              </option>
-                            ))}
-                          </select>
-                        </label>
-                        <button type="button" className="secondary mini-btn" onClick={() => moveTaskByStep(idea.id, -1)}>
-                          ←
-                        </button>
-                        <button type="button" className="secondary mini-btn" onClick={() => moveTaskByStep(idea.id, 1)}>
-                          →
-                        </button>
-                      </div>
                       {notesPreview && <p className="notes-preview">{notesPreview}</p>}
                     </>
                   )}
