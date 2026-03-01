@@ -76,6 +76,16 @@ const localSeedIdeas = [
   },
   {
     id: crypto.randomUUID(),
+    title: 'Build inventory system for Card Shop',
+    notes: 'Design and implement inventory tracking for card intake, pricing, stock levels, and sales sync.',
+    column: 'Do Next',
+    votes: 0,
+    owner: '',
+    dueDate: '',
+    metrics: { impact: 5, revenue: 5, urgency: 4, confidence: 4, effort: 4 },
+  },
+  {
+    id: crypto.randomUUID(),
     title: 'AI phone answering with calendar scheduling',
     notes: 'Answer calls, qualify lead/client need, and book directly on calendar.',
     column: 'Do Now',
