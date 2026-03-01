@@ -40,6 +40,10 @@ Created: 2026-02-26
 - Definition: Scrape/research top 50 high-fit social creators/posts discussing tax strategy/tax advice (TikTok, YouTube, Instagram, Facebook), then produce ranked targets + tailored comment/DM scripts to drive traffic into the checklist funnel.
 - Purpose: Reusable outbound growth play to seed the Business Owner + High-Income Tax Checklist funnel.
 
+## Reusable Prompt Snippet (GitHub)
+- Saved: 2026-03-01
+- Prompt: "Create a new GitHub repository named `<repo-name>`, initialize it if needed, commit all current files with a clear message, set the remote to `<github-url>`, and push to `main`. If auth is required, pause and tell me exactly what to click or paste. Ensure the repository is private."
+
 ## Saved Prompt Snippets
 
 ### GitHub prompt (saved 2026-02-28)
