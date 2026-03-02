@@ -17,6 +17,14 @@ const TEAM_MEMBERS = [
 const ASSIGNMENT_WEBHOOK = import.meta.env.VITE_ASSIGNMENT_WEBHOOK_URL || ''
 const MAX_LOCKED_DO_NOW = 3
 
+const ASSIGNEE_COLORS = {
+  Chea: '#2563eb',
+  Cory: '#7c3aed',
+  Anthony: '#059669',
+  Chadd: '#d97706',
+  Zack: '#dc2626',
+}
+
 const TASK_TEMPLATES = [
   {
     name: 'Client onboarding',
@@ -334,6 +342,7 @@ function App() {
   })
 
   const [draggedId, setDraggedId] = useState(null)
+  const [dragOverColumn, setDragOverColumn] = useState(null)
   const didDragRef = useRef(false)
   const [assigneeFilter, setAssigneeFilter] = useState('All')
   const [myTasksFor, setMyTasksFor] = useState('Chea')
@@ -420,6 +429,13 @@ function App() {
       if (!ignore) {
         setIdeas(mergedIdeas)
         setStatus('Realtime connected')
+      }
+
+      const { data: metaData, error: metaError } = await supabase.from('task_meta').select('id, meta')
+      if (!metaError && metaData && !ignore) {
+        const metaMap = {}
+        metaData.forEach((row) => { metaMap[row.id] = { ...defaultTaskMeta(), ...row.meta } })
+        setTaskMeta(metaMap)
       }
     }
 
@@ -543,6 +559,10 @@ function App() {
     const highPriority = active.filter((idea) => idea.metrics.urgency >= 4 || idea.metrics.impact >= 4).length
     const completionRate = ideas.length ? Math.round((ideas.filter((idea) => idea.column === 'Done').length / ideas.length) * 100) : 0
 
+    const pipelineValue = active.reduce((sum, idea) => {
+      return sum + Number(taskMeta[idea.id]?.valuePropAmount || 0)
+    }, 0)
+
     return {
       total: ideas.length,
       active: active.length,
@@ -550,8 +570,9 @@ function App() {
       overdue,
       highPriority,
       completionRate,
+      pipelineValue,
     }
-  }, [ideas, today])
+  }, [ideas, today, taskMeta])
 
   useEffect(() => {
     const doNowIds = new Set(ideas.filter((idea) => idea.column === 'Do Now').map((idea) => idea.id))
@@ -901,6 +922,11 @@ function App() {
       if (activityText) {
         updated = logTaskActivity(updated, activityText)
       }
+      if (hasSupabase) {
+        supabase.from('task_meta').upsert({ id, meta: updated }).then(({ error }) => {
+          if (error) console.warn('task_meta sync failed:', error.message)
+        })
+      }
       return {
         ...prev,
         [id]: updated,
@@ -997,6 +1023,7 @@ function App() {
         <article><strong>{dashboardStats.overdue}</strong><span>Overdue</span></article>
         <article><strong>{dashboardStats.highPriority}</strong><span>High priority</span></article>
         <article><strong>{dashboardStats.completionRate}%</strong><span>Completed</span></article>
+        <article><strong>${dashboardStats.pipelineValue.toLocaleString()}</strong><span>Pipeline</span></article>
       </section>
 
       <section className="toolbar">
@@ -1096,9 +1123,10 @@ function App() {
         {visibleColumns.map((column) => (
           <div
             key={column}
-            className="column"
-            onDragOver={(e) => e.preventDefault()}
-            onDrop={() => onDropColumn(column)}
+            className={`column${dragOverColumn === column ? ' column-drag-over' : ''}`}
+            onDragOver={(e) => { e.preventDefault(); setDragOverColumn(column) }}
+            onDragLeave={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) setDragOverColumn(null) }}
+            onDrop={() => { onDropColumn(column); setDragOverColumn(null) }}
           >
             <h2>
               {column} <span className="column-count">({groupedIdeas[column].length})</span>
@@ -1115,6 +1143,7 @@ function App() {
                 <article
                   key={idea.id}
                   className={`card ${isSelectedTask ? 'card-selected' : 'card-collapsed'}`}
+                  style={{ borderLeft: `3px solid ${ASSIGNEE_COLORS[idea.owner] || '#e4e7ec'}` }}
                   draggable={!isEditing}
                   onDragStart={() => { didDragRef.current = false; setDraggedId(idea.id) }}
                   onDragEnd={() => { didDragRef.current = true; setDraggedId(null) }}

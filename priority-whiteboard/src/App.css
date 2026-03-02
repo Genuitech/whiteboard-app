@@ -60,7 +60,7 @@ header p {
 
 .snapshot-strip {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 0.55rem;
   margin: 0.9rem 0 0.8rem;
 }
@@ -222,6 +222,13 @@ button.danger {
   min-height: 250px;
   max-height: 72vh;
   overflow: auto;
+  transition: background 120ms ease, border-color 120ms ease;
+}
+
+.column-drag-over {
+  background: #eef4ff;
+  border-color: #175cd3;
+  box-shadow: inset 0 0 0 2px rgba(23, 92, 211, 0.15);
 }
 
 .column-expand {
@@ -575,7 +582,7 @@ button.danger {
   }
 
   .snapshot-strip {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(3, 1fr);
   }
 
   .toolbar {
@@ -585,5 +592,50 @@ button.danger {
   .welcome-tip {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .toolbar-actions {
+    flex-wrap: wrap;
+  }
+
+  .toolbar-actions button {
+    flex: 1 1 auto;
+    min-width: 80px;
+  }
+
+  .quick-filters {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    padding-bottom: 0.2rem;
+  }
+
+  .column {
+    max-height: none;
+  }
+
+  .task-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .task-fields-3 {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .app {
+    padding: 0.75rem;
+  }
+
+  .snapshot-strip {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  header h1 {
+    font-size: 1.2rem;
+  }
+
+  .card {
+    padding: 0.5rem;
   }
 }
